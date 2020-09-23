@@ -1,0 +1,58 @@
+version: '3.3'
+
+services:
+
+  web:
+    container_name: sakur-housing-beta-web
+    build: .
+    command: bash -c "./entry-point.sh"
+    volumes:
+      - .:/code
+    environment:
+      ENVIRONMENT: 'beta'
+    restart: always
+
+  webserver:
+    container_name: sakura-housing-beta-nginx
+    build: ./nginx
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx/snippets:/etc/nginx/snippets
+      - ./nginx/certs:/etc/nginx/certs
+      - ./nginx/dhparam.pem:/etc/nginx/dhparam.pem
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.labels.role == normal
+      resources:
+        limits:
+          memory: 1024M
+
+  database:
+    container_name: sakura-housing-development
+    image: postgres:lastest
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_USER: admin
+      POSTGRES_DB: sakura-housing
+      ALLOW_IP_RANGE: 0.0.0.0/0
+      DB_VENDOR: postgres
+      DESTROY_DATABASE_ON_RESTART: 'False'
+    ports:
+      - 5433:5432
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.labels.role == tanker
