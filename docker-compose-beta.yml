@@ -3,7 +3,7 @@ version: '3.3'
 services:
 
   web:
-    container_name: sakur-housing-beta-web
+    container_name: sakura-housing-beta-web
     build: .
     command: bash -c "./entry-point.sh"
     volumes:

@@ -5,3 +5,4 @@ drf_yasg==1.17.1
 psycopg2-binary==2.8.6
 django-silk==4.1.0
 python-decouple==3.3
+python-dateutil==2.8.1

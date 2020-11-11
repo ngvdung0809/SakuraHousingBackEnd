@@ -47,7 +47,7 @@ class Company(models.Model):
         return '{}-{}'.format(self.id, self.name)
 
 
-class User(AbstractBaseUser):
+class Accounts(AbstractBaseUser):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True)
     username = models.CharField(max_length=255)
     email = models.EmailField(max_length=255, unique=True)
@@ -65,7 +65,7 @@ class User(AbstractBaseUser):
     REQUIRED_FIELDS = ['username']
     
     class Meta:
-        db_table = 'user'
+        db_table = 'accounts'
     
     def __str__(self):
         return '{}-{}'.format(self.id, self.username)
@@ -88,7 +88,7 @@ class User(AbstractBaseUser):
 
 
 class UserAuth(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(Accounts, on_delete=models.CASCADE)
     auth_code = models.CharField(max_length=6, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -100,7 +100,7 @@ class UserAuth(models.Model):
 
 
 class Token(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(Accounts, on_delete=models.CASCADE)
     token = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     

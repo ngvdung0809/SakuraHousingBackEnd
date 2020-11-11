@@ -36,8 +36,9 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'rest_framework',
     'apps.authentication',
-    'apps.answer',
-    'apps.question',
+    'apps.common',
+    'apps.contract',
+    'apps.payment'
 ]
 if DEBUG:
     INSTALLED_APPS += [
