@@ -14,7 +14,7 @@ class UserManager(BaseUserManager):
         usuario.set_password(password)
         usuario.save(using=self._db)
         return usuario
-    
+
     def create_superuser(self, username, password):
         usuario = self.create_user(username=username, password=password)
         usuario.is_admin = True
@@ -50,46 +50,46 @@ class Tenants(models.Model):
     chi_nhanh2 = models.CharField(max_length=255, null=True, blank=True)
     ngan_hang2 = models.CharField(max_length=255, null=True, blank=True)
     note = models.CharField(max_length=512, null=True, blank=True)
-    
+
     class Meta:
         db_table = 'tenants'
-    
+
     def __str__(self):
         return '{}-{}-{}'.format(self.id, self.name, self.address)
 
 
 class Accounts(AbstractBaseUser):
-    tenant = models.ForeignKey(Tenants, on_delete=models.CASCADE, null=True, blank=True)
+    tenant = models.ForeignKey(Tenants, on_delete=models.CASCADE)
     username = models.CharField(max_length=255, unique=True)
     full_name = models.CharField(max_length=255)
     role = models.IntegerField(choices=CHOICE_ROLE, default=RoleType.VIEWER.value)
     is_admin = models.BooleanField(default=False)
-    staff_code = models.CharField(max_length=255)
+    staff_code = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(default=None, blank=True, null=True)
-    
+
     objects = UserManager()
-    
+
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['role']
-    
+
     class Meta:
         db_table = 'accounts'
-    
+
     def __str__(self):
         return '{}-{}'.format(self.id, self.username)
-    
+
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
         # Simplest possible answer: Yes, always
         return True
-    
+
     def has_module_perms(self, app_label):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always
         return True
-    
+
     @property
     def is_staff(self):
         "Is the user a member of staff?"
@@ -101,9 +101,9 @@ class Token(models.Model):
     user = models.ForeignKey(Accounts, on_delete=models.CASCADE)
     token = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         db_table = 'token'
-    
+
     def __str__(self):
         return "{} - {} - {}".format(self.id, self.user_id, self.token)
