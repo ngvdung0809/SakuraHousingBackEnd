@@ -1,16 +1,13 @@
 from enum import Enum
 
 
-class GenderType(Enum):
-    MALE = 1
-    FEMALE = 2
-    OTHER = 3
+class RoleType(Enum):
+    ADMIN = 1
+    VIEWER = 2
+    DISABLE = 3
 
 
-class QuestionType(Enum):
-    pass
-
-
-class Part(Enum):
-    QUESTION_87 = 1
-    QUESTION_7 = 2
+class PaymentStatus(Enum):
+    PAID = 1
+    UNPAID = 2
+    ERROR = 3

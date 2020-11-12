@@ -188,7 +188,7 @@ SWAGGER_SETTINGS = {
     
 }
 
-AUTH_USER_MODEL = 'authentication.User'
+AUTH_USER_MODEL = 'authentication.Accounts'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,

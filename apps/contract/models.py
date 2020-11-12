@@ -1,8 +1,8 @@
 from django.db import models
 
 # Create your models here.
-from apps.authentication.models import Accounts
-from apps.common.models import CanHos, KhachThues, Tenants
+from apps.authentication.models import Accounts, Tenants
+from apps.common.models import CanHos, KhachThues
 
 
 class HDGroups(models.Model):
@@ -10,12 +10,12 @@ class HDGroups(models.Model):
     can_ho = models.ForeignKey(CanHos, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(Accounts, on_delete=models.CASCADE)
-    updated_by = models.ForeignKey(Accounts, on_delete=models.CASCADE)
-
+    created_by = models.ForeignKey(Accounts, on_delete=models.CASCADE, related_name='hd_group_created_by')
+    updated_by = models.ForeignKey(Accounts, on_delete=models.CASCADE, related_name='hd_group_updated_by')
+    
     class Meta:
         db_table = 'hd_group'
-
+    
     def __str__(self):
         return '{}-{}-{}'.format(self.id, self.name, self.can_ho)
 
@@ -25,10 +25,10 @@ class ContractType(models.Model):
     can_ho = models.ForeignKey(CanHos, on_delete=models.CASCADE)
     description = models.CharField(max_length=255, null=True, blank=True)
     short_name = models.CharField(max_length=255)
-
+    
     class Meta:
         db_table = 'contract_type'
-
+    
     def __str__(self):
         return '{}-{}'.format(self.id, self.short_name)
 
@@ -53,10 +53,10 @@ class HDThue(models.Model):
     ngay_nhan = models.DateField()
     ngay_tra = models.DateField()
     type_contract = models.ForeignKey(ContractType, on_delete=models.CASCADE)
-
+    
     class Meta:
         db_table = 'hd_thue'
-
+    
     def __str__(self):
         return '{}-{}'.format(self.id, self.hd_group)
 
@@ -72,10 +72,10 @@ class HDMoiGioi(models.Model):
     ky_tt = models.IntegerField()
     note = models.CharField(max_length=512, null=True, blank=True)
     type_contract = models.ForeignKey(ContractType, on_delete=models.CASCADE)
-
+    
     class Meta:
         db_table = 'hd_moi_gioi'
-
+    
     def __str__(self):
         return '{}-{}'.format(self.id, self.hd_group)
 
@@ -86,13 +86,13 @@ class HDDichVu(models.Model):
     nhan_vien = models.ForeignKey(Accounts, on_delete=models.CASCADE)
     tien_thuc_linh = models.IntegerField()
     tien_dich_vu = models.IntegerField()
-    thoi_gian_thanh_toan = models.CharField()
+    thoi_gian_thanh_toan = models.CharField(max_length=255)
     note = models.CharField(max_length=512, null=True, blank=True)
     type_contract = models.ForeignKey(ContractType, on_delete=models.CASCADE)
-
+    
     class Meta:
         db_table = 'hd_dich_vu'
-
+    
     def __str__(self):
         return '{}-{}'.format(self.id, self.hd_group)
 
@@ -102,10 +102,10 @@ class DichVus(models.Model):
     don_vi = models.CharField(max_length=10)
     code = models.CharField(max_length=10)
     dinh_ky = models.BooleanField(default=True)
-
+    
     class Meta:
         db_table = 'dich_vu'
-
+    
     def __str__(self):
         return '{}-{}'.format(self.id, self.name)
 
@@ -117,9 +117,9 @@ class HD2DichVus(models.Model):
     ky_tt = models.IntegerField()
     dinh_muc = models.IntegerField()
     note = models.CharField(max_length=512, null=True, blank=True)
-
+    
     class Meta:
         db_table = 'hd_2_dich_vu'
-
+    
     def __str__(self):
         return '{}-{}'.format(self.id, self.hd_thue)
