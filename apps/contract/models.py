@@ -99,8 +99,8 @@ class HDDichVu(models.Model):
 
 class DichVus(models.Model):
     name = models.CharField(max_length=255)
-    don_vi = models.CharField(max_length=10)
-    code = models.CharField(max_length=10)
+    don_vi = models.CharField(max_length=10, null=True, blank=True)
+    code = models.CharField(max_length=10, null=True, blank=True)
     dinh_ky = models.BooleanField(default=True)
     
     class Meta:

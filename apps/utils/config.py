@@ -1,5 +1,5 @@
 class PasswordRegex:
-    password_regex = "^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*?]{6,50}$"
+    password_regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d!@#$%^&*?]{8,50}$"
 
 
 class MailSubject:

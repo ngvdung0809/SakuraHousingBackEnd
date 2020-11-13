@@ -1,140 +1,178 @@
-from dateutil.relativedelta import relativedelta
-from django.contrib.auth import authenticate
-from django.utils import timezone
 from rest_framework import serializers
 
-from apps.authentication.models import User, Company, UserAuth
-import re
-from datetime import datetime, date
-from django.conf import settings
-
-from apps.utils.config import PasswordRegex
-from apps.utils.error_code import ErrorCode
-from apps.utils.exception import CustomException
+from apps.common.models import ToaNhas, ChuNhas, CanHos, KhachThues
+from apps.contract.models import DichVus
 
 
-class EmptySerializer(serializers.Serializer):
-    def update(self, instance, validated_data):
-        pass
-    
-    def create(self, validated_data):
-        pass
-
-
-class UserCreateSerializer(serializers.ModelSerializer):
-    birthday = serializers.CharField(required=True, max_length=255)
-    company_code = serializers.CharField(max_length=4, min_length=4, required=False)
-    email = serializers.EmailField(required=True, max_length=255)
+class ToaNhaRequestSerializer(serializers.ModelSerializer):
+    address = serializers.CharField(default=None, max_length=255)
+    phuong = serializers.CharField(default=None, max_length=255)
+    city = serializers.CharField(default=None, max_length=255)
     
     class Meta:
-        model = User
-        fields = ('email', 'password', 'username', 'gender', 'birthday', 'company_code')
-        extra_kwargs = {
-            'company_code': {'required': False},
-            'birthday': {'input_formats': settings.DATE_FORMATS},
-        }
-    
-    def validate_birthday(self, value):
-        try:
-            current_date = date.today()
-            birthday_user = datetime.strptime(value, settings.DATE_FORMATS[0])
-        except Exception as e:
-            raise CustomException(ErrorCode.birthday_invalid_format)
-        if birthday_user.date() > current_date:
-            raise CustomException(ErrorCode.birthday_invalid_date)
-        return birthday_user.date()
-    
-    def validate_password(self, value):
-        if not re.search(PasswordRegex.password_regex, value):
-            raise CustomException(ErrorCode.password_invalid)
-        return value
+        model = ToaNhas
+        fields = ['name', 'address', 'phuong', 'district', 'city']
     
     def create(self, validated_data):
-        try:
-            user = User.objects.filter(email=validated_data.get('email')).get()
-            if user.is_active:
-                raise CustomException(ErrorCode.account_has_exist)
-        except User.DoesNotExist:
-            user = User(
-                email=validated_data.get('email'),
-                username=validated_data.get('username'),
-                gender=validated_data.get('gender'),
-                birthday=validated_data.get('birthday'),
-                company=validated_data.get('company', None),
-            )
-            user.set_password(validated_data.get('password'))
-            user.save()
-        return user
-
-
-class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
-    password = serializers.CharField(min_length=6, required=True)
-    
-    def validate(self, attrs):
-        user = authenticate(email=attrs['email'], password=attrs['password'])
-        if not user:
-            raise CustomException(ErrorCode.login_fail)
-        return user
-    
-    def create(self, validated_data):
-        pass
+        toa_nha = ToaNhas.objects.create(**self.validated_data)
+        return toa_nha
     
     def update(self, instance, validated_data):
-        pass
+        for i in validated_data.keys():
+            setattr(instance, i, validated_data[i])
+        instance.save()
+        return instance
 
 
-class CheckEmailSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True, max_length=255)
+class ChuNhaRequestSerializer(serializers.ModelSerializer):
+    cmt = serializers.CharField(default=None, max_length=255)
+    cmt_NgayCap = serializers.DateField(default=None)
+    cmt_NoiCap = serializers.CharField(default=None, max_length=255)
+    cccd = serializers.CharField(default=None, max_length=255)
+    cccd_NgayCap = serializers.DateField(default=None)
+    cccd_NoiCap = serializers.CharField(default=None, max_length=255)
+    passport_no = serializers.CharField(default=None, max_length=255)
+    passport_NgayCap = serializers.DateField(default=None)
+    passport_NgayHan = serializers.DateField(default=None)
+    birthday = serializers.DateField(default=None)
+    phone2 = serializers.CharField(default=None, max_length=255)
+    email2 = serializers.CharField(default=None, max_length=255)
+    so_TK2 = serializers.CharField(default=None, max_length=255)
+    chi_nhanh2 = serializers.CharField(default=None, max_length=255)
+    ngan_hang2 = serializers.CharField(default=None, max_length=255)
+    note = serializers.CharField(default=None, max_length=512)
     
-    def validate(self, attrs):
-        if User.objects.filter(email=attrs['email']).exists():
-            raise CustomException(ErrorCode.has_exist_email)
-        return attrs
+    class Meta:
+        model = ChuNhas
+        fields = ['name', 'cmt', 'cmt_NgayCap', 'cmt_NoiCap', 'cccd', 'cccd_NgayCap', 'cccd_NoiCap',
+                  'passport_no', 'passport_NgayCap', 'passport_NgayHan', 'birthday',
+                  'address', 'phone', 'phone2', 'email', 'email2', 'so_TK', 'chi_nhanh', 'ngan_hang', 'so_TK2',
+                  'chi_nhanh2', 'ngan_hang2', 'note', ]
     
     def create(self, validated_data):
-        pass
+        chu_nha = ChuNhas.objects.create(**self.validated_data)
+        return chu_nha
     
     def update(self, instance, validated_data):
-        pass
+        for i in validated_data.keys():
+            setattr(instance, i, validated_data[i])
+        instance.save()
+        return instance
 
 
-class CheckCompanySerializer(serializers.Serializer):
-    company_code = serializers.CharField(max_length=4, min_length=4)
+class CanHoRequestSerializer(serializers.ModelSerializer):
+    description = serializers.CharField(default=None, max_length=512)
+    note = serializers.CharField(default=None, max_length=512)
     
-    def validate(self, attrs):
-        if not Company.objects.filter(company_code=attrs['company_code']).exists():
-            raise CustomException(ErrorCode.not_found_company)
-        return attrs
+    class Meta:
+        model = CanHos
+        fields = [
+            'name',
+            'chu_nha',
+            'toa_nha',
+            'address',
+            'gcn',
+            'gcn_NgayCap',
+            'gcn_NoiCap',
+            'description',
+            'note'
+        ]
     
     def create(self, validated_data):
-        pass
+        can_ho = CanHos.objects.create(**self.validated_data)
+        return can_ho
     
     def update(self, instance, validated_data):
-        pass
+        for i in validated_data.keys():
+            setattr(instance, i, validated_data[i])
+        instance.save()
+        return instance
 
 
-class CheckOTPCodeSerializer(serializers.Serializer):
-    user = serializers.IntegerField(required=True)
-    otp_code = serializers.CharField(max_length=6, required=True)
+class KhachThueRequestSerializer(serializers.ModelSerializer):
+    cmt = serializers.CharField(default=None, max_length=255)
+    cmt_NgayCap = serializers.DateField(default=None)
+    cmt_NoiCap = serializers.CharField(default=None, max_length=255)
+    cccd = serializers.CharField(default=None, max_length=255)
+    cccd_NgayCap = serializers.DateField(default=None)
+    cccd_NoiCap = serializers.CharField(default=None, max_length=255)
+    passport_no = serializers.CharField(default=None, max_length=255)
+    passport_NgayCap = serializers.DateField(default=None)
+    passport_NgayHan = serializers.DateField(default=None)
+    company_name = serializers.CharField(default=None, max_length=255)
+    company_phone = serializers.CharField(default=None, max_length=255)
+    company_fax = serializers.CharField(default=None, max_length=255)
+    company_address = serializers.CharField(default=None, max_length=255)
+    company_tax_code = serializers.CharField(default=None, max_length=255)
+    company_rep = serializers.CharField(default=None, max_length=255)
+    company_rep_role = serializers.CharField(default=None, max_length=255)
+    birthday = serializers.DateField(default=None)
+    assistant_name = serializers.CharField(default=None, max_length=255)
+    assistant_phone = serializers.CharField(default=None, max_length=255)
+    assistant_email = serializers.CharField(default=None, max_length=255)
+    note = serializers.CharField(default=None, max_length=512)
     
-    def validate(self, attrs):
-        try:
-            user_code = UserAuth.objects.filter(
-                user_id=attrs['user'],
-                auth_code=attrs['otp_code']
-            ).get()
-            # check time code
-            if not user_code.created_at >= timezone.now() - relativedelta(minutes=3):
-                raise CustomException(ErrorCode.otp_code_has_expired)
-            return user_code.user
-        except UserAuth.DoesNotExist:
-            raise CustomException(ErrorCode.wrong_data)
+    class Meta:
+        model = KhachThues
+        fields = [
+            'name',
+            'cmt',
+            'cmt_NgayCap',
+            'cmt_NoiCap',
+            'cccd',
+            'cccd_NgayCap',
+            'cccd_NoiCap',
+            'passport_no',
+            'passport_NgayCap',
+            'passport_NgayHan',
+            'company_name',
+            'company_phone',
+            'company_fax',
+            'company_address',
+            'company_tax_code',
+            'company_rep',
+            'company_rep_role',
+            'birthday',
+            'address',
+            'phone',
+            'email',
+            'assistant_name',
+            'assistant_phone',
+            'assistant_email',
+            'note'
+        ]
     
-    def save(self, **kwargs):
-        user = self.validated_data
-        user.is_active = True
-        user.save()
-        # delete otp code
-        UserAuth.objects.filter(user=user).delete()
-        return user
+    def create(self, validated_data):
+        khach_thue = KhachThues.objects.create(**self.validated_data)
+        return khach_thue
+    
+    def update(self, instance, validated_data):
+        for i in validated_data.keys():
+            setattr(instance, i, validated_data[i])
+        instance.save()
+        return instance
+
+
+class DichVuRequestSerializer(serializers.ModelSerializer):
+    don_vi = serializers.CharField(max_length=10, default=None)
+    code = serializers.CharField(max_length=10, default=None)
+    dinh_ky = serializers.BooleanField(default=True)
+    
+    class Meta:
+        model = DichVus
+        fields = [
+            'name',
+            'don_vi',
+            'code',
+            'dinh_ky',
+        ]
+    
+    def create(self, validated_data):
+        dich_vu = DichVus.objects.create(**self.validated_data)
+        return dich_vu
+    
+    def update(self, instance, validated_data):
+        for i in validated_data.keys():
+            setattr(instance, i, validated_data[i])
+        instance.save()
+        return instance

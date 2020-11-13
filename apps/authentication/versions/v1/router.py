@@ -11,4 +11,10 @@ auth_urlpatterns = [
     url(r'v1/logout/$', auth_view.LogoutViewSet.as_view()),
 ]
 
+router_tenant = DefaultRouter()
+router_tenant.register(r'v1', auth_view.TenantView.TenantViewSet)
+
 auth_urlpatterns += router_auth.urls
+
+tenant_urlpatterns = []
+tenant_urlpatterns += router_tenant.urls

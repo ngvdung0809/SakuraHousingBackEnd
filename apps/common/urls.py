@@ -1,8 +1,12 @@
-from apps.authentication.versions.v1.router import auth_urlpatterns, account_urlpatterns
+from apps.common.versions.v1.router import toa_nha_urlpatterns, chu_nha_urlpatterns, khach_thue_urlpatterns, \
+    can_ho_urlpatterns, dich_vu_urlpatterns
 
 from django.urls import path, include
 
 urlpatterns = [
-    path('auth/', include(auth_urlpatterns)),
-    path('account/', include(account_urlpatterns)),
+    path('toa-nha/', include(toa_nha_urlpatterns)),
+    path('chu-nha/', include(chu_nha_urlpatterns)),
+    path('khach-thue/', include(khach_thue_urlpatterns)),
+    path('can-ho/', include(can_ho_urlpatterns)),
+    path('dich-vu/', include(dich_vu_urlpatterns)),
 ]

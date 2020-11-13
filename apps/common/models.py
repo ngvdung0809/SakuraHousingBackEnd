@@ -16,10 +16,10 @@ class Districts(models.Model):
 
 class ToaNhas(models.Model):
     name = models.CharField(max_length=255)
-    address = models.CharField(max_length=255),
-    phuong = models.CharField(max_length=255),
+    address = models.CharField(max_length=255, null=True, blank=True)
+    phuong = models.CharField(max_length=255, null=True, blank=True)
     district = models.ForeignKey(Districts, on_delete=models.CASCADE)
-    city = models.CharField(max_length=255)
+    city = models.CharField(max_length=255, null=True, blank=True)
     
     class Meta:
         db_table = 'toa_nhas'
@@ -51,11 +51,9 @@ class ChuNhas(models.Model):
     so_TK2 = models.CharField(max_length=255, null=True, blank=True)
     chi_nhanh2 = models.CharField(max_length=255, null=True, blank=True)
     ngan_hang2 = models.CharField(max_length=255, null=True, blank=True)
-    note = models.CharField(max_length=512)
+    note = models.CharField(max_length=512, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(Accounts, on_delete=models.CASCADE, related_name='chu_nhas_created_by')
-    updated_by = models.ForeignKey(Accounts, on_delete=models.CASCADE, related_name='chu_nhas_updated_by')
     
     class Meta:
         db_table = 'chu_nhas'
@@ -92,8 +90,6 @@ class KhachThues(models.Model):
     note = models.CharField(max_length=512, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(Accounts, on_delete=models.CASCADE, related_name='khach_thues_created_by')
-    updated_by = models.ForeignKey(Accounts, on_delete=models.CASCADE, related_name='khach_thues_updated_by')
     
     class Meta:
         db_table = 'khach_thues'
@@ -110,12 +106,10 @@ class CanHos(models.Model):
     gcn = models.CharField(max_length=255)
     gcn_NgayCap = models.DateField(max_length=255)
     gcn_NoiCap = models.CharField(max_length=255)
-    description = models.CharField(max_length=512)
-    note = models.CharField(max_length=512)
+    description = models.CharField(max_length=512, null=True, blank=True)
+    note = models.CharField(max_length=512, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(Accounts, on_delete=models.CASCADE, related_name='can_hos_created_by')
-    updated_by = models.ForeignKey(Accounts, on_delete=models.CASCADE, related_name='can_hos_updated_by')
     
     class Meta:
         db_table = 'can_hos'
