@@ -117,6 +117,7 @@ class HD2DichVus(models.Model):
     ky_tt = models.IntegerField()
     dinh_muc = models.IntegerField()
     note = models.CharField(max_length=512, null=True, blank=True)
+    payment = models.JSONField()
     
     class Meta:
         db_table = 'hd_2_dich_vu'

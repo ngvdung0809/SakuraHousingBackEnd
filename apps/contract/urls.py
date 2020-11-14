@@ -1,8 +1,7 @@
-from apps.authentication.versions.v1.router import auth_urlpatterns, account_urlpatterns
+from apps.contract.versions.v1.router import hd_group_urlpatterns
 
 from django.urls import path, include
 
 urlpatterns = [
-    path('auth/', include(auth_urlpatterns)),
-    path('account/', include(account_urlpatterns)),
+    path('hd-groups/', include(hd_group_urlpatterns)),
 ]
