@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 # Create your models here.
-from apps.contract.models import HD2DichVus, HDThue, HDMoiGioi
+from apps.contract.models import HD2DichVus
 from apps.utils.constants import PaymentStatus
 
 CHOICE_STATUS = (
