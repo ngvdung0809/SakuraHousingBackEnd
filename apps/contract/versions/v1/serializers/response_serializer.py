@@ -5,31 +5,13 @@ from apps.common.versions.v1.serializers.response_serializer import CanHoRespons
 from apps.contract.models import HDGroups, HDThue, HDMoiGioi, HDDichVu
 
 
-class HDGroupResponseSerializer(serializers.ModelSerializer):
-    can_ho = CanHoResponseSerializer()
-
-    class Meta:
-        model = HDGroups
-        fields = [
-            'id',
-            'name',
-            'can_ho',
-            'created_at',
-            'updated_at',
-            'created_by',
-            'updated_by'
-        ]
-
-
 class HDThueResponseSerializer(serializers.ModelSerializer):
-    hd_group = HDGroupResponseSerializer()
     khach_thue = KhachThueResponseSerializer()
-
+    
     class Meta:
         model = HDThue
         fields = [
             'id',
-            'hd_group',
             'khach_thue',
             'start_date',
             'end_date',
@@ -51,14 +33,12 @@ class HDThueResponseSerializer(serializers.ModelSerializer):
 
 
 class HDMoiGioiResponseSerializer(serializers.ModelSerializer):
-    hd_group = HDGroupResponseSerializer()
     tenant = TenantResponseSerializer()
-
+    
     class Meta:
         model = HDMoiGioi
         fields = [
             'id',
-            'hd_group',
             'tenant',
             'tien_moi_gioi',
             'note',
@@ -67,18 +47,35 @@ class HDMoiGioiResponseSerializer(serializers.ModelSerializer):
 
 
 class HDDichVuResponseSerializer(serializers.ModelSerializer):
-    hd_group = HDGroupResponseSerializer()
     tenant = TenantResponseSerializer()
-
+    
     class Meta:
         model = HDDichVu
         fields = [
             'id',
-            'hd_group',
             'tenant',
             'tien_thuc_linh',
             'tien_dich_vu',
             'thoi_gian_thanh_toan',
             'note',
             'type_contract'
+        ]
+
+
+class HDGroupResponseSerializer(serializers.ModelSerializer):
+    can_ho = CanHoResponseSerializer()
+    hd_thues = HDThueResponseSerializer(many=True)
+    hd_moi_giois = HDMoiGioiResponseSerializer(many=True)
+    hd_dich_vus = HDDichVuResponseSerializer(many=True)
+    
+    class Meta:
+        model = HDGroups
+        fields = [
+            'id',
+            'name',
+            'can_ho',
+            'hd_thues',
+            'hd_moi_giois',
+            'hd_dich_vus',
+            'created_at',
         ]
