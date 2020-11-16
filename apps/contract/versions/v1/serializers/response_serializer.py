@@ -7,7 +7,7 @@ from apps.contract.models import HDGroups, HDThue, HDMoiGioi, HDDichVu
 
 class HDThueResponseSerializer(serializers.ModelSerializer):
     khach_thue = KhachThueResponseSerializer()
-    
+
     class Meta:
         model = HDThue
         fields = [
@@ -34,7 +34,7 @@ class HDThueResponseSerializer(serializers.ModelSerializer):
 
 class HDMoiGioiResponseSerializer(serializers.ModelSerializer):
     tenant = TenantResponseSerializer()
-    
+
     class Meta:
         model = HDMoiGioi
         fields = [
@@ -48,7 +48,7 @@ class HDMoiGioiResponseSerializer(serializers.ModelSerializer):
 
 class HDDichVuResponseSerializer(serializers.ModelSerializer):
     tenant = TenantResponseSerializer()
-    
+
     class Meta:
         model = HDDichVu
         fields = [
@@ -67,7 +67,7 @@ class HDGroupResponseSerializer(serializers.ModelSerializer):
     hd_thues = HDThueResponseSerializer(many=True)
     hd_moi_giois = HDMoiGioiResponseSerializer(many=True)
     hd_dich_vus = HDDichVuResponseSerializer(many=True)
-    
+
     class Meta:
         model = HDGroups
         fields = [
@@ -77,5 +77,16 @@ class HDGroupResponseSerializer(serializers.ModelSerializer):
             'hd_thues',
             'hd_moi_giois',
             'hd_dich_vus',
+            'created_at',
+        ]
+
+
+class SubHDGroupResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HDGroups
+        fields = [
+            'id',
+            'name',
+            'can_ho',
             'created_at',
         ]
