@@ -1,18 +1,18 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from apps.payment.models import PaymentTransactions
+from apps.payment.models import PaymentTransactions, ServiceTransactions
 
 
 def payment_transaction(start_date, end_date, ky_tt):
     c = relativedelta(end_date, start_date)
     d = c.months + 12 * c.years
-    
+
     z = round(d / ky_tt)
-    
+
     a = [start_date]
     b = start_date
-    
+
     for i in range(0, z):
         time = b + relativedelta(months=ky_tt)
         b = time
@@ -24,7 +24,7 @@ def generate_payment_hd(hd_thue, hd_moi_gioi, chu_nha):
     start_date = datetime.strptime('2020-11-11', '%Y-%m-%d')
     end_date = datetime.strptime('2022-11-11', '%Y-%m-%d')
     list_time = payment_transaction(start_date, end_date, 3)
-    
+
     list_obj_hd_thue = [PaymentTransactions(
         hop_dong=hd_thue,
         dot_thanh_toan="T{}".format(i.strftime("%m-%Y")),
@@ -35,7 +35,7 @@ def generate_payment_hd(hd_thue, hd_moi_gioi, chu_nha):
         nguoi_gui=hd_thue.khach_thue,
         nguoi_nhan=chu_nha,
     ) for i in list_time]
-    
+
     if hd_moi_gioi:
         PaymentTransactions.objects.create(
             hop_dong=hd_moi_gioi,
@@ -47,6 +47,20 @@ def generate_payment_hd(hd_thue, hd_moi_gioi, chu_nha):
             nguoi_gui=hd_thue.khach_thue,
             nguoi_nhan=chu_nha,
         )
-    
+
     PaymentTransactions.objects.bulk_create(list_obj_hd_thue)
+    return True
+
+
+def generate_service(service, start_date, end_date):
+    list_obj = []
+    for i in service:
+        list_time = payment_transaction(start_date, end_date, i.ky_tt)
+        for j in list_time:
+            list_obj.append(ServiceTransactions(
+                hd_2_dichvu=i,
+                dot_thanh_toan="T{}".format(i.strftime("%m-%Y")),
+                ngay_thanh_toan_du_kien=j,
+            ))
+    ServiceTransactions.objects.bulk_create(list_obj)
     return True
