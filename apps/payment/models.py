@@ -14,18 +14,22 @@ CHOICE_STATUS = (
 
 
 class PaymentTransactions(models.Model):
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    hop_dong = GenericForeignKey('content_type', 'object_id')
+    hop_dong_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='hop_dong_type')
+    hop_dong_id = models.PositiveIntegerField()
+    nguoi_gui_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='nguoi_gui_type')
+    nguoi_gui_id = models.PositiveIntegerField()
+    nguoi_nhan_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='nguoi_nhan_type')
+    nguoi_nhan_id = models.PositiveIntegerField()
+    hop_dong = GenericForeignKey('hop_dong_type', 'hop_dong_id')
     dot_thanh_toan = models.CharField(max_length=512)
     start_date = models.DateField()
     end_date = models.DateField()
     status = models.IntegerField(choices=CHOICE_STATUS, default=PaymentStatus.UNPAID.value)  # choice
     ngay_thanh_toan_du_kien = models.DateField()
-    ngay_thanh_toan_tt = models.DateField()
+    ngay_thanh_toan_tt = models.DateField(null=True, blank=True)
     so_tien = models.IntegerField()
-    nguoi_gui = GenericForeignKey('content_type', 'object_id')
-    nguoi_nhan = GenericForeignKey('content_type', 'object_id')
+    nguoi_gui = GenericForeignKey('nguoi_gui_type', 'nguoi_gui_id')
+    nguoi_nhan = GenericForeignKey('nguoi_nhan_type', 'nguoi_nhan_id')
     
     class Meta:
         db_table = 'payment_transaction'

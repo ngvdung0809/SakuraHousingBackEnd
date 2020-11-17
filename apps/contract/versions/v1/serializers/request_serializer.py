@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from apps.authentication.models import Accounts, Tenants
 from apps.contract.models import HDGroups, HDMoiGioi, HDDichVu, HDThue
+from apps.contract.utils.create_payment import generate_payment_hd
 from apps.utils.error_code import ErrorCode
 from apps.utils.exception import CustomException
 
@@ -29,11 +30,11 @@ class HDThueRequestSerializer(serializers.ModelSerializer):
             'ngay_nhan',
             'ngay_tra',
         ]
-
+    
     # def create(self, validated_data):
     #     hd_moi_gioi = HDMoiGioi.objects.create(**self.validated_data)
     #     return hd_moi_gioi
-
+    
     def update(self, instance, validated_data):
         for i in validated_data.keys():
             setattr(instance, i, validated_data[i])
@@ -50,11 +51,11 @@ class HDMoiGioiRequestSerializer(serializers.ModelSerializer):
             'tien_moi_gioi',
             'note'
         ]
-
+    
     # def create(self, validated_data):
     #     hd_moi_gioi = HDMoiGioi.objects.create(**self.validated_data)
     #     return hd_moi_gioi
-
+    
     def update(self, instance, validated_data):
         for i in validated_data.keys():
             setattr(instance, i, validated_data[i])
@@ -73,11 +74,11 @@ class HDDichVuRequestSerializer(serializers.ModelSerializer):
             'thoi_gian_thanh_toan',
             'note',
         ]
-
+    
     # def create(self, validated_data):
     #     hd_dich_vu = HDDichVu.objects.create(**self.validated_data)
     #     return hd_dich_vu
-
+    
     def update(self, instance, validated_data):
         for i in validated_data.keys():
             setattr(instance, i, validated_data[i])
@@ -134,7 +135,7 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
     hd_thue = SubHDThueRequestSerializer()
     hd_moi_gioi = SubHDMoiGioiRequestSerializer()
     hd_dich_vu = SubHDDichVuRequestSerializer()
-
+    
     def validate(self, attrs):
         try:
             nhan_vien = Accounts.objects.get(pk=attrs['nhan_vien'])
@@ -144,7 +145,7 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
             raise CustomException(ErrorCode.not_found_record)
         except Tenants.DoesNotExist:
             raise CustomException(ErrorCode.not_found_record)
-
+    
     class Meta:
         model = HDGroups
         fields = [
@@ -157,7 +158,7 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
             'hd_moi_gioi',
             'hd_dich_vu',
         ]
-
+    
     def create(self, validated_data):
         hd_group = HDGroups.objects.create(**{
             'name': self.validated_data['name'],
@@ -165,24 +166,26 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
             'created_by': self.context['request'].user,
             'updated_by': self.context['request'].user,
         })
-
+        
         self.validated_data['hd_thue']['hd_group'] = hd_group
         self.validated_data['hd_thue']['nhan_vien_id'] = self.validated_data['nhan_vien']
-
+        
         self.validated_data['hd_moi_gioi']['hd_group'] = hd_group
         self.validated_data['hd_moi_gioi']['nhan_vien_id'] = self.validated_data['nhan_vien']
         self.validated_data['hd_moi_gioi']['tenant_id'] = self.validated_data['tenant']
-
+        
         self.validated_data['hd_dich_vu']['hd_group'] = hd_group
         self.validated_data['hd_dich_vu']['nhan_vien_id'] = self.validated_data['nhan_vien']
         self.validated_data['hd_dich_vu']['tenant_id'] = self.validated_data['tenant']
-
-        HDThue.objects.create(**self.validated_data['hd_thue'])
-        HDMoiGioi.objects.create(**self.validated_data['hd_moi_gioi'])
-        HDDichVu.objects.create(**self.validated_data['hd_dich_vu'])
-
+        
+        hd_thue = HDThue.objects.create(**self.validated_data['hd_thue'])
+        hd_moi_gioi = HDMoiGioi.objects.create(**self.validated_data['hd_moi_gioi'])
+        hd_dich_vu = HDDichVu.objects.create(**self.validated_data['hd_dich_vu'])
+        
+        generate_payment_hd(hd_thue, hd_moi_gioi, self.validated_data['can_ho'].chu_nha)
+        
         return hd_group
-
+    
     # def update(self, instance, validated_data):
     #     validated_data['updated_by'] = self.context['request'].user
     #     for i in validated_data.keys():
