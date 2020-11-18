@@ -1,6 +1,7 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
+from apps.contract.models import HD2DichVus
 from apps.payment.models import PaymentTransactions, ServiceTransactions
 
 
@@ -21,7 +22,7 @@ def payment_transaction(start_date, end_date, ky_tt):
 
 
 def generate_payment_hd(hd_thue, hd_moi_gioi, chu_nha):
-    list_time = payment_transaction(hd_thue.start_date, hd_thue.end_date, 3)
+    list_time = payment_transaction(hd_thue.start_date, hd_thue.end_date, hd_thue.ky_tt)
     
     list_obj_hd_thue = [PaymentTransactions(
         hop_dong=hd_thue,
@@ -62,3 +63,15 @@ def generate_service(service, start_date, end_date):
             ))
     ServiceTransactions.objects.bulk_create(list_obj)
     return True
+
+
+def create_hd2_dv(dich_vus, hd_thue):
+    list_obj = [HD2DichVus(
+        hd_thue=hd_thue,
+        dich_vu_id=i['dich_vu'],
+        ky_tt=i['ky_tt'],
+        dinh_muc=i.get('dinh_muc', None),
+        note=i.get('note', None)
+    ) for i in dich_vus]
+    list_instance = HD2DichVus.objects.bulk_create(list_obj)
+    return list_instance

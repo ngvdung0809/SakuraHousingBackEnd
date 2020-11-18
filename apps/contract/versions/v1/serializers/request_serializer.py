@@ -1,10 +1,12 @@
+from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from rest_framework import serializers
 
 from apps.authentication.models import Accounts, Tenants
 from apps.common.versions.v1.serializers.response_serializer import DichVuResponseSerializer
 from apps.contract.models import HDGroups, HDMoiGioi, HDDichVu, HDThue, HD2DichVus, DichVus
-from apps.contract.utils.create_payment import generate_payment_hd, generate_service
+from apps.contract.utils.create_payment import generate_payment_hd, generate_service, create_hd2_dv
+from apps.payment.models import ServiceTransactions, PaymentTransactions
 from apps.utils.error_code import ErrorCode
 from apps.utils.exception import CustomException
 
@@ -25,6 +27,8 @@ class HD2DichVusRequestSerializer(serializers.ModelSerializer):
 
 
 class HDThueRequestSerializer(serializers.ModelSerializer):
+    dich_vu = HD2DichVusRequestSerializer(many=True)
+    
     class Meta:
         model = HDThue
         fields = [
@@ -45,16 +49,44 @@ class HDThueRequestSerializer(serializers.ModelSerializer):
             'ngay_ki',
             'ngay_nhan',
             'ngay_tra',
+            'dich_vu'
         ]
     
     # def create(self, validated_data):
     #     hd_moi_gioi = HDMoiGioi.objects.create(**self.validated_data)
     #     return hd_moi_gioi
     
+    def delete_dv(self, hd_thue):
+        list_instance = HD2DichVus.objects.filter(hd_thue=hd_thue)
+        
+        ServiceTransactions.objects.filter(hd_2_dichvu__in=list_instance).delete()
+        list_instance.delete()
+    
+    def update_dv(self, instance, dich_vu):
+        self.delete_dv(instance)
+        services = create_hd2_dv(dich_vu, instance)
+        generate_service(services, instance.start_date, instance.end_date)
+        
+        # add new dich vu
+    
+    @transaction.atomic
     def update(self, instance, validated_data):
+        dich_vu = validated_data.get('dich_vu', None)
+        validated_data.pop('dich_vu', None)
         for i in validated_data.keys():
             setattr(instance, i, validated_data[i])
         instance.save()
+        
+        if dich_vu:
+            self.update_dv(instance, dich_vu)
+        
+        if any(key in validated_data for key in ['gia_thue_per_month', 'start_date', 'end_date', 'ky_tt']):
+            PaymentTransactions.objects.filter(
+                hop_dong_id=instance.id,
+                hop_dong_type=ContentType.objects.get_for_model(instance).id
+            ).delete()
+            generate_payment_hd(hd_thue=instance, hd_moi_gioi=None, chu_nha=instance.hd_group.can_ho.chu_nha)
+        
         return instance
 
 
@@ -179,17 +211,6 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
             'hd_dich_vu',
         ]
     
-    def create_hd2_dv(self, dich_vus, hd_thue):
-        list_obj = [HD2DichVus(
-            hd_thue=hd_thue,
-            dich_vu_id=i['dich_vu'],
-            ky_tt=i['ky_tt'],
-            dinh_muc=i.get('dinh_muc', None),
-            note=i.get('note', None)
-        ) for i in dich_vus]
-        list_instance = HD2DichVus.objects.bulk_create(list_obj)
-        return list_instance
-    
     @transaction.atomic
     def create(self, validated_data):
         hd_group = HDGroups.objects.create(**{
@@ -217,7 +238,7 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
         hd_moi_gioi = HDMoiGioi.objects.create(**self.validated_data['hd_moi_gioi'])
         HDDichVu.objects.create(**self.validated_data['hd_dich_vu'])
         
-        services = self.create_hd2_dv(list_dv, hd_thue)
+        services = create_hd2_dv(list_dv, hd_thue)
         
         generate_payment_hd(hd_thue, hd_moi_gioi, self.validated_data['can_ho'].chu_nha)
         generate_service(services, self.validated_data['hd_thue']['start_date'],
