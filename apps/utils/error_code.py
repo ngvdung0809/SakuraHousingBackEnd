@@ -40,3 +40,7 @@ class ErrorCode:
         Error.code: 12,
         Error.message: 'Username hoặc password không chính xác vui lòng kiểm tra lại'
     }
+    lock_account = {
+        Error.code: 13,
+        Error.message: 'Tai khoan bi khoa vui long lien he admin de biet them thong tin'
+    }

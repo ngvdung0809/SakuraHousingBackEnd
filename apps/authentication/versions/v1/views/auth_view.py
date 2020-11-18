@@ -14,7 +14,7 @@ import apps.utils.response_interface as rsp
 from apps.authentication.models import Token, Accounts, Tenants
 from apps.authentication.utils.custom_auth import JWTToken
 from apps.authentication.versions.v1.serializers.request_serializer import LoginSerializer, EmptySerializer, \
-    AccountCreateSerializer, TenantRequestSerializer
+    AccountCreateSerializer, TenantRequestSerializer, AccountRequestSerializer
 from apps.authentication.versions.v1.serializers.response_serializer import UserResponseSerializer, \
     TenantResponseSerializer
 from apps.utils.error_code import ErrorCode
@@ -28,7 +28,7 @@ class AuthenticationView:
     # ))
     class AuthenticationViewSet(JSONWebTokenAPIView):
         serializer_class = LoginSerializer
-        
+
         def post(self, request, *args, **kwargs):
             serializer = LoginSerializer(data=request.data)
             if serializer.is_valid(raise_exception=True):
@@ -45,7 +45,7 @@ class AuthenticationView:
 class LogoutViewSet(APIView):
     serializer_class = EmptySerializer
     permission_classes = (IsAuthenticated,)
-    
+
     def post(self, request, *args, **kwargs):
         token = request.auth.token
         Token.objects.filter(user=request.user, token=token).delete()
@@ -64,29 +64,29 @@ class UserCreateView:
     @method_decorator(name='destroy', decorator=swagger_auto_schema(auto_schema=None))
     class UserCreateViewSet(GenericViewSet):
         serializer_class = AccountCreateSerializer
-        queryset = Accounts.objects.all()
-        
+        queryset = Accounts.objects.select_related('tenant').all()
+
         def list(self, request, custom_queryset=None, custom_query_params=None, *args, **kwargs):
             pass
-        
+
         def retrieve(self, request, custom_object=None, *args, **kwargs):
             pass
-        
+
         def destroy(self, request, *args, **kwargs):
             pass
-        
+
         def update(self, request, custom_instance=None, custom_data=None, *args, **kwargs):
             pass
-        
+
         def partial_update(self, request, custom_instance=None, custom_data=None, *args, **kwargs):
             pass
-        
+
         def create(self, request, *args, **kwargs):
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            
+
             instance = self.perform_create(serializer)
-            
+
             general_response = rsp.Response(UserResponseSerializer(instance).data).generate_response()
             response = Response(general_response, status=status.HTTP_201_CREATED)
             return response
@@ -104,35 +104,70 @@ class TenantView:
             'partial_update_response': TenantResponseSerializer,
             'retrieve_response': TenantResponseSerializer
         }
-        
+
         def list(self, request, custom_queryset=None, custom_query_params=None, *args, **kwargs):
             query = Tenants.objects.all()
             results = self.get_response_serializer(query, many=True).data
             return super().custom_response(results)
-        
+
         def retrieve(self, request, custom_object=None, *args, **kwargs):
             try:
                 obj = Tenants.objects.get(pk=kwargs['pk'])
             except Tenants.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
             return super().retrieve(request, custom_object=obj, *args, **kwargs)
-        
+
         def destroy(self, request, *args, **kwargs):
             pass
-        
+
         def partial_update(self, request, custom_instance=None, custom_data=None, *args, **kwargs):
             try:
                 obj = Tenants.objects.get(pk=kwargs['pk'])
             except Tenants.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
             return super().partial_update(request, custom_instance=obj, *args, **kwargs)
-        
+
         def create(self, request, *args, **kwargs):
             serializer = self.get_request_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            
+
             tenant = serializer.save()
-            
+
             general_response = rsp.Response(TenantResponseSerializer(tenant).data).generate_response()
             response = Response(general_response, status=status.HTTP_201_CREATED)
             return response
+
+
+class AccountView:
+    # @method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
+    @method_decorator(name='create', decorator=swagger_auto_schema(auto_schema=None))
+    @method_decorator(name='retrieve', decorator=swagger_auto_schema(auto_schema=None))
+    @method_decorator(name='update', decorator=swagger_auto_schema(auto_schema=None))
+    # @method_decorator(name='partial_update', decorator=swagger_auto_schema(auto_schema=None))
+    @method_decorator(name='destroy', decorator=swagger_auto_schema(auto_schema=None))
+    class AccountViewSet(GenericViewSet):
+        serializer_class = AccountRequestSerializer
+        queryset = Accounts.objects.all()
+        action_serializers = {
+            'list_response': UserResponseSerializer,
+            'partial_update_response': UserResponseSerializer,
+        }
+
+        def list(self, request, custom_queryset=None, custom_query_params=None, *args, **kwargs):
+            return super().list(request, *args, **kwargs)
+
+        def retrieve(self, request, custom_object=None, *args, **kwargs):
+            pass
+
+        def destroy(self, request, *args, **kwargs):
+            pass
+
+        def partial_update(self, request, custom_instance=None, custom_data=None, *args, **kwargs):
+            try:
+                obj = Accounts.objects.get(pk=kwargs['pk'])
+            except Tenants.DoesNotExist:
+                raise CustomException(ErrorCode.not_found_record)
+            return super().partial_update(request, custom_instance=obj, *args, **kwargs)
+
+        def create(self, request, *args, **kwargs):
+            pass

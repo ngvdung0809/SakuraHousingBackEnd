@@ -18,3 +18,9 @@ auth_urlpatterns += router_auth.urls
 
 tenant_urlpatterns = []
 tenant_urlpatterns += router_tenant.urls
+
+router_account = DefaultRouter()
+router_account.register(r'v1', auth_view.AccountView.AccountViewSet)
+
+account_urlpatterns = []
+account_urlpatterns += router_account.urls
