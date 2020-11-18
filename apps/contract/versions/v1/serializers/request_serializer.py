@@ -1,11 +1,27 @@
-from django.db.models import Prefetch
+from django.db import transaction
 from rest_framework import serializers
 
 from apps.authentication.models import Accounts, Tenants
-from apps.contract.models import HDGroups, HDMoiGioi, HDDichVu, HDThue
-from apps.contract.utils.create_payment import generate_payment_hd
+from apps.common.versions.v1.serializers.response_serializer import DichVuResponseSerializer
+from apps.contract.models import HDGroups, HDMoiGioi, HDDichVu, HDThue, HD2DichVus, DichVus
+from apps.contract.utils.create_payment import generate_payment_hd, generate_service
 from apps.utils.error_code import ErrorCode
 from apps.utils.exception import CustomException
+
+
+class HD2DichVusRequestSerializer(serializers.ModelSerializer):
+    dich_vu = serializers.IntegerField()
+    dinh_muc = serializers.IntegerField(required=False)
+    note = serializers.CharField(max_length=255, required=False)
+    
+    class Meta:
+        model = HD2DichVus
+        fields = [
+            'dich_vu',
+            'ky_tt',
+            'dinh_muc',
+            'note',
+        ]
 
 
 class HDThueRequestSerializer(serializers.ModelSerializer):
@@ -87,6 +103,8 @@ class HDDichVuRequestSerializer(serializers.ModelSerializer):
 
 
 class SubHDThueRequestSerializer(serializers.ModelSerializer):
+    dich_vu = HD2DichVusRequestSerializer(many=True)
+    
     class Meta:
         model = HDThue
         fields = [
@@ -106,6 +124,7 @@ class SubHDThueRequestSerializer(serializers.ModelSerializer):
             'ngay_ki',
             'ngay_nhan',
             'ngay_tra',
+            'dich_vu'
         ]
 
 
@@ -140,6 +159,7 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
         try:
             nhan_vien = Accounts.objects.get(pk=attrs['nhan_vien'])
             tenant = Tenants.objects.get(pk=attrs['tenant'])
+            
             return attrs
         except Accounts.DoesNotExist:
             raise CustomException(ErrorCode.not_found_record)
@@ -159,6 +179,18 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
             'hd_dich_vu',
         ]
     
+    def create_hd2_dv(self, dich_vus, hd_thue):
+        list_obj = [HD2DichVus(
+            hd_thue=hd_thue,
+            dich_vu_id=i['dich_vu'],
+            ky_tt=i['ky_tt'],
+            dinh_muc=i.get('dinh_muc', None),
+            note=i.get('note', None)
+        ) for i in dich_vus]
+        list_instance = HD2DichVus.objects.bulk_create(list_obj)
+        return list_instance
+    
+    @transaction.atomic
     def create(self, validated_data):
         hd_group = HDGroups.objects.create(**{
             'name': self.validated_data['name'],
@@ -178,11 +210,18 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
         self.validated_data['hd_dich_vu']['nhan_vien_id'] = self.validated_data['nhan_vien']
         self.validated_data['hd_dich_vu']['tenant_id'] = self.validated_data['tenant']
         
+        list_dv = self.validated_data['hd_thue']['dich_vu']
+        self.validated_data['hd_thue'].pop('dich_vu')
+        
         hd_thue = HDThue.objects.create(**self.validated_data['hd_thue'])
         hd_moi_gioi = HDMoiGioi.objects.create(**self.validated_data['hd_moi_gioi'])
-        hd_dich_vu = HDDichVu.objects.create(**self.validated_data['hd_dich_vu'])
+        HDDichVu.objects.create(**self.validated_data['hd_dich_vu'])
+        
+        services = self.create_hd2_dv(list_dv, hd_thue)
         
         generate_payment_hd(hd_thue, hd_moi_gioi, self.validated_data['can_ho'].chu_nha)
+        generate_service(services, self.validated_data['hd_thue']['start_date'],
+                         self.validated_data['hd_thue']['end_date'])
         
         return hd_group
     

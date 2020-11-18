@@ -19,10 +19,10 @@ class HDGroups(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(Accounts, on_delete=models.CASCADE, related_name='hd_group_created_by')
     updated_by = models.ForeignKey(Accounts, on_delete=models.CASCADE, related_name='hd_group_updated_by')
-
+    
     class Meta:
         db_table = 'hd_group'
-
+    
     def __str__(self):
         return '{}-{}-{}'.format(self.id, self.name, self.can_ho)
 
@@ -47,10 +47,10 @@ class HDThue(models.Model):
     ngay_nhan = models.DateField(null=True, blank=True)
     ngay_tra = models.DateField(null=True, blank=True)
     type_contract = models.IntegerField(choices=CHOICE_CONTRACT_TYPE, default=ContractType.HDThue.value)
-
+    
     class Meta:
         db_table = 'hd_thue'
-
+    
     def __str__(self):
         return '{}-{}'.format(self.id, self.hd_group)
 
@@ -62,10 +62,10 @@ class HDMoiGioi(models.Model):
     tien_moi_gioi = models.IntegerField()
     note = models.CharField(max_length=512, null=True, blank=True)
     type_contract = models.IntegerField(choices=CHOICE_CONTRACT_TYPE, default=ContractType.HDMoiGioi.value)
-
+    
     class Meta:
         db_table = 'hd_moi_gioi'
-
+    
     def __str__(self):
         return '{}-{}'.format(self.id, self.hd_group)
 
@@ -79,10 +79,10 @@ class HDDichVu(models.Model):
     thoi_gian_thanh_toan = models.CharField(max_length=255, null=True, blank=True)
     note = models.CharField(max_length=512, null=True, blank=True)
     type_contract = models.IntegerField(choices=CHOICE_CONTRACT_TYPE, default=ContractType.HDDichVu.value)
-
+    
     class Meta:
         db_table = 'hd_dich_vu'
-
+    
     def __str__(self):
         return '{}-{}'.format(self.id, self.hd_group)
 
@@ -92,10 +92,10 @@ class DichVus(models.Model):
     don_vi = models.CharField(max_length=10, null=True, blank=True)
     code = models.CharField(max_length=10, null=True, blank=True)
     dinh_ky = models.BooleanField(default=True)
-
+    
     class Meta:
         db_table = 'dich_vu'
-
+    
     def __str__(self):
         return '{}-{}'.format(self.id, self.name)
 
@@ -103,13 +103,12 @@ class DichVus(models.Model):
 class HD2DichVus(models.Model):
     hd_thue = models.ForeignKey(HDThue, on_delete=models.CASCADE)
     dich_vu = models.ForeignKey(DichVus, on_delete=models.CASCADE)
-    don_gia = models.IntegerField()
     ky_tt = models.IntegerField()
-    dinh_muc = models.IntegerField()
+    dinh_muc = models.IntegerField(null=True, blank=True)
     note = models.CharField(max_length=512, null=True, blank=True)
-
+    
     class Meta:
         db_table = 'hd_2_dich_vu'
-
+    
     def __str__(self):
         return '{}-{}'.format(self.id, self.hd_thue)
