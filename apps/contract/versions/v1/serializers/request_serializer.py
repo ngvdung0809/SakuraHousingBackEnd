@@ -3,8 +3,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from apps.authentication.models import Accounts, Tenants
-from apps.common.versions.v1.serializers.response_serializer import DichVuResponseSerializer
-from apps.contract.models import HDGroups, HDMoiGioi, HDDichVu, HDThue, HD2DichVus, DichVus
+from apps.contract.models import HDGroups, HDMoiGioi, HDDichVu, HDThue, HD2DichVus
 from apps.contract.utils.create_payment import generate_payment_hd, generate_service, create_hd2_dv
 from apps.payment.models import ServiceTransactions, PaymentTransactions
 from apps.utils.error_code import ErrorCode
@@ -77,7 +76,7 @@ class HDThueRequestSerializer(serializers.ModelSerializer):
             setattr(instance, i, validated_data[i])
         instance.save()
         
-        if dich_vu:
+        if dich_vu or any(key in validated_data for key in ['start_date', 'end_date']):
             self.update_dv(instance, dich_vu)
         
         if any(key in validated_data for key in ['gia_thue_per_month', 'start_date', 'end_date', 'ky_tt']):
@@ -245,10 +244,16 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
                          self.validated_data['hd_thue']['end_date'])
         
         return hd_group
+
+
+class SubHDGroupRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HDGroups
+        fields = ['name', 'can_ho']
     
-    # def update(self, instance, validated_data):
-    #     validated_data['updated_by'] = self.context['request'].user
-    #     for i in validated_data.keys():
-    #         setattr(instance, i, validated_data[i])
-    #     instance.save()
-    #     return instance
+    def update(self, instance, validated_data):
+        validated_data['updated_by'] = self.context['request'].user
+        for i in validated_data.keys():
+            setattr(instance, i, validated_data[i])
+        instance.save()
+        return instance
