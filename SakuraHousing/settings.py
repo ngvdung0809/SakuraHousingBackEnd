@@ -229,3 +229,9 @@ LOGGING = {
 }
 DATE_FORMATS = ('%d-%m-%Y', '%Y-%m-%d')
 DATE_TIME_FORMATS = ('%d-%m-%Y %H:%M:%S', '%d/%m/%Y')
+
+EMAIL_HOST = env_config.get('EMAIL_HOST')
+EMAIL_HOST_USER = env_config.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env_config.get('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = env_config.get('EMAIL_PORT')
+EMAIL_USE_TLS = env_config.get('EMAIL_USE_TLS')

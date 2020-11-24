@@ -22,6 +22,7 @@ from rest_framework import permissions
 from apps.authentication.urls import urlpatterns as auth_urlpatterns
 from apps.common.urls import urlpatterns as common_urlpatterns
 from apps.contract.urls import urlpatterns as contract_urlpatterns
+from apps.payment.urls import urlpatterns as payment_urlpatterns
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -47,3 +48,4 @@ urlpatterns = [
 urlpatterns += auth_urlpatterns
 urlpatterns += common_urlpatterns
 urlpatterns += contract_urlpatterns
+urlpatterns += payment_urlpatterns

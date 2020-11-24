@@ -43,8 +43,8 @@ def generate_payment_hd(hd_thue, hd_moi_gioi, chu_nha):
             end_date=hd_thue.start_date + relativedelta(days=7),
             ngay_thanh_toan_du_kien=hd_thue.start_date,
             so_tien=hd_moi_gioi.tien_moi_gioi,
-            nguoi_gui=hd_thue.khach_thue,
-            nguoi_nhan=chu_nha,
+            nguoi_gui=chu_nha,
+            nguoi_nhan=hd_moi_gioi.tenant,
         )
     
     PaymentTransactions.objects.bulk_create(list_obj_hd_thue)

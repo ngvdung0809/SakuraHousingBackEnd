@@ -3,8 +3,5 @@ class PasswordRegex:
 
 
 class MailSubject:
-    activation = 'Happiness Book会員認証コードのお知らせ'
-
-
-class OTPString:
-    otp_string = "0123456789"
+    payment = 'Nhắc hẹn thanh toán'
+    warning_payment = 'Nhắc nhở thanh toán quá hạn'
