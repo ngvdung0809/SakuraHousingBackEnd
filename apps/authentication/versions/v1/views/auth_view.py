@@ -15,7 +15,7 @@ import apps.utils.response_interface as rsp
 from apps.authentication.models import Token, Accounts, Tenants
 from apps.authentication.utils.custom_auth import JWTToken
 from apps.authentication.versions.v1.serializers.request_serializer import LoginSerializer, EmptySerializer, \
-    AccountCreateSerializer, TenantRequestSerializer, AccountRequestSerializer
+    AccountCreateSerializer, TenantRequestSerializer, AccountRequestSerializer, ChangePasswordSerializer
 from apps.authentication.versions.v1.serializers.response_serializer import UserResponseSerializer, \
     TenantResponseSerializer
 from apps.utils.error_code import ErrorCode
@@ -67,6 +67,7 @@ class UserCreateView:
     class UserCreateViewSet(GenericViewSet):
         serializer_class = AccountCreateSerializer
         queryset = Accounts.objects.select_related('tenant').all()
+        
         # permission_classes = [IsAdminRole]
         
         def list(self, request, custom_queryset=None, custom_query_params=None, *args, **kwargs):
@@ -186,3 +187,27 @@ class AccountView:
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='list-account')
         def list_account(self, request, *args, **kwargs):
             return super().list(request, *args, **kwargs)
+
+
+class ChangePassWordView:
+    @method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
+    @method_decorator(name='create', decorator=swagger_auto_schema(auto_schema=None))
+    @method_decorator(name='retrieve', decorator=swagger_auto_schema(auto_schema=None))
+    @method_decorator(name='update', decorator=swagger_auto_schema(auto_schema=None))
+    @method_decorator(name='partial_update', decorator=swagger_auto_schema(auto_schema=None))
+    @method_decorator(name='destroy', decorator=swagger_auto_schema(auto_schema=None))
+    class ChangePassWordViewSet(GenericViewSet):
+        permission_classes = (IsAuthenticated,)
+        serializer_class = ChangePasswordSerializer
+        queryset = Accounts.objects.all()
+        action_serializers = {
+            'change_password_request': ChangePasswordSerializer
+        }
+        
+        @action(detail=False, methods=['post'], url_path='change-password')
+        def change_password(self, request, *args, **kwargs):
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            general_response = rsp.Response(None).generate_response()
+            return Response(general_response, status=status.HTTP_200_OK)
