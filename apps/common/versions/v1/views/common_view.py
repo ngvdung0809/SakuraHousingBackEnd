@@ -11,7 +11,7 @@ from apps.common.versions.v1.serializers.request_serializer import ToaNhaRequest
     KhachThueRequestSerializer, CanHoRequestSerializer, DichVuRequestSerializer
 from apps.common.versions.v1.serializers.response_serializer import ToaNhaResponseSerializer, \
     ChuNhaResponseSerializer, KhachThueResponseSerializer, CanHoResponseSerializer, DichVuResponseSerializer
-from apps.contract.models import DichVus
+from apps.contract.models import DichVus, HDGroups, HDThue, HDMoiGioi, HDDichVu
 from apps.utils.error_code import ErrorCode
 from apps.utils.exception import CustomException
 from apps.utils.permission import IsAdminRole

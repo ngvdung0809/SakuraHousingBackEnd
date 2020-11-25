@@ -18,6 +18,8 @@ from apps.authentication.versions.v1.serializers.request_serializer import Login
     AccountCreateSerializer, TenantRequestSerializer, AccountRequestSerializer, ChangePasswordSerializer
 from apps.authentication.versions.v1.serializers.response_serializer import UserResponseSerializer, \
     TenantResponseSerializer
+from apps.common.models import ChuNhas, KhachThues, CanHos, ToaNhas
+from apps.contract.models import HDGroups, HDThue, HDMoiGioi, HDDichVu
 from apps.utils.error_code import ErrorCode
 from apps.utils.exception import CustomException
 from apps.utils.permission import IsAdminRole
@@ -187,6 +189,28 @@ class AccountView:
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='list-account')
         def list_account(self, request, *args, **kwargs):
             return super().list(request, *args, **kwargs)
+        
+        @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='overview')
+        def overview(self, request, *args, **kwargs):
+            count_chu_nha = ChuNhas.objects.count()
+            count_khach_thue = KhachThues.objects.count()
+            count_can_ho = CanHos.objects.count()
+            count_toa_nha = ToaNhas.objects.count()
+            count_hd_group = HDGroups.objects.count()
+            count_hd_thue = HDThue.objects.count()
+            count_hd_moi_gioi = HDMoiGioi.objects.count()
+            count_hd_dich_vu = HDDichVu.objects.count()
+            response = {
+                'chu_nha': count_chu_nha,
+                'khach_thue': count_khach_thue,
+                'can_ho': count_can_ho,
+                'toa_nha': count_toa_nha,
+                'hd_group': count_hd_group,
+                'hd_thue': count_hd_thue,
+                'hd_moi_gioi': count_hd_moi_gioi,
+                'hd_dich_vu': count_hd_dich_vu,
+            }
+            return super().custom_response(response)
 
 
 class ChangePassWordView:
