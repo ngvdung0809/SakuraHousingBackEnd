@@ -21,7 +21,6 @@ services:
       - web
     ports:
       - 8081:80
-      - 443:443
     volumes:
       - ./nginx/snippets:/etc/nginx/snippets
 
@@ -37,6 +36,6 @@ services:
       DB_VENDOR: postgres
       DESTROY_DATABASE_ON_RESTART: 'False'
     ports:
-      - 5434:5432
+      - 5435:5432
     volumes:
       - ~/.happy_app/data:/var/lib/postgresql/data
