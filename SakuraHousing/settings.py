@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'apps.authentication',
     'apps.common',
     'apps.contract',
-    'apps.payment'
+    'apps.payment',
+    'corsheaders',
 ]
 if DEBUG:
     INSTALLED_APPS += [
@@ -58,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'silk.middleware.SilkyMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 # FCM_DJANGO_SETTINGS = {
@@ -235,3 +237,16 @@ EMAIL_HOST_USER = env_config.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env_config.get('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = env_config.get('EMAIL_PORT')
 EMAIL_USE_TLS = env_config.get('EMAIL_USE_TLS')
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ALLOW_METHODS = (
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+)
+
+CORS_ALLOW_CREDENTIALS = True
