@@ -14,6 +14,7 @@ from apps.common.versions.v1.serializers.response_serializer import ToaNhaRespon
 from apps.contract.models import DichVus, HDGroups, HDThue, HDMoiGioi, HDDichVu
 from apps.utils.error_code import ErrorCode
 from apps.utils.exception import CustomException
+from apps.utils.multi_delete import MultiDeleteRequestSerializer
 from apps.utils.permission import IsAdminRole
 from apps.utils.views_helper import GenericViewSet
 
@@ -30,7 +31,8 @@ class ToaNhaView:
             'create_request': ToaNhaRequestSerializer,
             'list_toa_nha_response': ToaNhaResponseSerializer,
             'partial_update_response': ToaNhaResponseSerializer,
-            'detail_toa_nha_response': ToaNhaResponseSerializer
+            'detail_toa_nha_response': ToaNhaResponseSerializer,
+            'delete_multi_request': MultiDeleteRequestSerializer
         }
         permission_classes = [IsAdminRole]
         
@@ -73,6 +75,13 @@ class ToaNhaView:
             except ToaNhas.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
             return super().retrieve(request, custom_object=obj, *args, **kwargs)
+        
+        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete_toanha')
+        def delete_multi(self, request, *args, **kwargs):
+            serializer = self.get_request_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            ToaNhas.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
+            return super().custom_response({})
 
 
 class ChuNhaView:
@@ -87,7 +96,8 @@ class ChuNhaView:
             'create_request': ChuNhaRequestSerializer,
             'list_toa_nha_response': ChuNhaResponseSerializer,
             'partial_update_response': ChuNhaResponseSerializer,
-            'detail_chu_nha_response': ChuNhaResponseSerializer
+            'detail_chu_nha_response': ChuNhaResponseSerializer,
+            'delete_multi_request': MultiDeleteRequestSerializer
         }
         permission_classes = [IsAdminRole]
         
@@ -130,6 +140,13 @@ class ChuNhaView:
             except ChuNhas.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
             return super().retrieve(request, custom_object=obj, *args, **kwargs)
+        
+        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete_chunha')
+        def delete_multi(self, request, *args, **kwargs):
+            serializer = self.get_request_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            ChuNhas.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
+            return super().custom_response({})
 
 
 class KhachThueView:
@@ -144,7 +161,8 @@ class KhachThueView:
             'create_request': KhachThueRequestSerializer,
             'list_khach_thue_response': KhachThueResponseSerializer,
             'partial_update_response': KhachThueResponseSerializer,
-            'detail_khach_thue_response': KhachThueResponseSerializer
+            'detail_khach_thue_response': KhachThueResponseSerializer,
+            'delete_multi_request': MultiDeleteRequestSerializer
         }
         permission_classes = [IsAdminRole]
         
@@ -187,6 +205,13 @@ class KhachThueView:
             except KhachThues.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
             return super().retrieve(request, custom_object=obj, *args, **kwargs)
+        
+        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete_khachthue')
+        def delete_multi(self, request, *args, **kwargs):
+            serializer = self.get_request_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            KhachThues.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
+            return super().custom_response({})
 
 
 class CanHoView:
@@ -201,7 +226,8 @@ class CanHoView:
             'create_request': CanHoRequestSerializer,
             'list_can_ho_response': CanHoResponseSerializer,
             'partial_update_response': CanHoResponseSerializer,
-            'detail_can_ho_response': CanHoResponseSerializer
+            'detail_can_ho_response': CanHoResponseSerializer,
+            'delete_multi_request': MultiDeleteRequestSerializer
         }
         permission_classes = [IsAdminRole]
         
@@ -244,6 +270,13 @@ class CanHoView:
             except CanHos.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
             return super().retrieve(request, custom_object=obj, *args, **kwargs)
+        
+        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete_canho')
+        def delete_multi(self, request, *args, **kwargs):
+            serializer = self.get_request_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            CanHos.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
+            return super().custom_response({})
 
 
 class DichVuView:
@@ -258,7 +291,8 @@ class DichVuView:
             'create_request': DichVuRequestSerializer,
             'list_dich_vu_response': DichVuResponseSerializer,
             'partial_update_response': DichVuResponseSerializer,
-            'detail_dich_vu_response': DichVuResponseSerializer
+            'detail_dich_vu_response': DichVuResponseSerializer,
+            'delete_multi_request': MultiDeleteRequestSerializer
         }
         permission_classes = [IsAdminRole]
         
@@ -301,3 +335,10 @@ class DichVuView:
             except DichVus.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
             return super().retrieve(request, custom_object=obj, *args, **kwargs)
+        
+        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete_dichvu')
+        def delete_multi(self, request, *args, **kwargs):
+            serializer = self.get_request_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            DichVus.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
+            return super().custom_response({})

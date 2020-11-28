@@ -22,6 +22,7 @@ from apps.common.models import ChuNhas, KhachThues, CanHos, ToaNhas
 from apps.contract.models import HDGroups, HDThue, HDMoiGioi, HDDichVu
 from apps.utils.error_code import ErrorCode
 from apps.utils.exception import CustomException
+from apps.utils.multi_delete import MultiDeleteRequestSerializer
 from apps.utils.permission import IsAdminRole
 from apps.utils.views_helper import GenericViewSet
 
@@ -167,6 +168,7 @@ class AccountView:
         action_serializers = {
             'list_account_response': UserResponseSerializer,
             'partial_update_response': UserResponseSerializer,
+            'delete_multi_request': MultiDeleteRequestSerializer
         }
         permission_classes = [IsAdminRole]
         
@@ -189,6 +191,14 @@ class AccountView:
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='list-account')
         def list_account(self, request, *args, **kwargs):
             return super().list(request, *args, **kwargs)
+        
+        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete_account')
+        def delete_multi(self, request, *args, **kwargs):
+            serializer = self.get_request_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            Accounts.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
+            
+            return super().custom_response({})
         
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='overview')
         def overview(self, request, *args, **kwargs):
