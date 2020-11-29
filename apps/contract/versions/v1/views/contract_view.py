@@ -2,6 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models.query import Prefetch
 from django.db.models.query_utils import Q
 from django.utils.decorators import method_decorator
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import action
@@ -23,11 +24,21 @@ from apps.utils.views_helper import GenericViewSet
 
 
 class HDGroupView:
+    search_field = openapi.Parameter(
+        'search',
+        openapi.IN_QUERY,
+        description="Tim kiem theo ten bo hop dong",
+        type=openapi.TYPE_STRING
+    )
+    
     @method_decorator(name='update', decorator=swagger_auto_schema(auto_schema=None))
     @method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
     @method_decorator(name='retrieve', decorator=swagger_auto_schema(auto_schema=None))
     # @method_decorator(name='partial_update', decorator=swagger_auto_schema(auto_schema=None))
     @method_decorator(name='destroy', decorator=swagger_auto_schema(auto_schema=None))
+    @method_decorator(name='list_hd_group', decorator=swagger_auto_schema(
+        manual_parameters=[search_field]
+    ))
     class HDGroupViewSet(GenericViewSet):
         serializer_class = SubHDGroupRequestSerializer
         queryset = HDGroups.objects.all()
@@ -98,8 +109,11 @@ class HDGroupView:
         
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='list-hd-group')
         def list_hd_group(self, request, *args, **kwargs):
-            query = self.common_query()
-            results = self.get_response_serializer(query, many=True).data
+            search = self.request.GET.get("search", None)
+            queryset = self.common_query()
+            if search:
+                queryset = queryset.filter(name__icontains=search)
+            results = self.get_response_serializer(queryset, many=True).data
             return super().custom_response(results)
         
         @action(detail=True, permission_classes=[IsAuthenticated], methods=['get'], url_path='detail-hd-group')
