@@ -126,12 +126,15 @@ class HDGroupView:
             ServiceTransactions.objects.filter(hd_2_dichvu__in=list_instance).delete()
             PaymentTransactions.objects.filter(
                 Q(hop_dong_id__in=list_hd_thue_id,
-                  hop_dong_type=17) | Q(hop_dong_id__in=list_hd_moigioi_id,
-                                        hop_dong_type=18)).delete()
+                  hop_dong_type=ContentType.objects.get_for_model(HDThue).id) |
+                Q(hop_dong_id__in=list_hd_moigioi_id,
+                  hop_dong_type=ContentType.objects.get_for_model(
+                      HDMoiGioi).id)).delete()
             
             list_instance.delete()
             hd_thue.delete()
             hd_moigioi.delete()
+            list_hdgroup.delete()
             
             return super().custom_response({})
 
