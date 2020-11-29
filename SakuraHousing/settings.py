@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'apps.contract',
     'apps.payment',
     'corsheaders',
+    'django_filters',
 ]
 if DEBUG:
     INSTALLED_APPS += [
@@ -151,6 +152,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'apps.authentication.utils.custom_auth.CustomAuthentication',
     ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
     # 'DEFAULT_AUTHENTICATION_CLASSES': [
     #     'rest_framework.authentication.BasicAuthentication',
     #     'rest_framework.authentication.SessionAuthentication',
@@ -168,7 +172,7 @@ DATABASES = {
         'HOST': env_config('DATABASE_HOST'),
         'PORT': env_config('DATABASE_PORT'),
     }
-    
+
 }
 
 SWAGGER_SETTINGS = {
@@ -178,7 +182,7 @@ SWAGGER_SETTINGS = {
     'REFETCH_SCHEMA_WITH_AUTH': True,
     'REFETCH_SCHEMA_ON_LOGOUT': True,
     'DEFAULT_INFO': 'SpaceShare.urls.swagger.swagger_info',
-    
+
     'SECURITY_DEFINITIONS': {
         'JWT': {
             'type': 'apiKey',
@@ -187,7 +191,7 @@ SWAGGER_SETTINGS = {
         }
     },
     'DOC_EXPANSION': 'none',
-    
+
 }
 
 AUTH_USER_MODEL = 'authentication.Accounts'

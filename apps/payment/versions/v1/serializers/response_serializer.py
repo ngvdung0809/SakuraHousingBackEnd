@@ -34,7 +34,7 @@ class PaymentTransactionResponseSerializer(serializers.ModelSerializer):
         return obj.hop_dong.type_contract
     
     def get_nguoi_gui(self, obj):
-        return obj.nguoi_nhan.name
+        return obj.nguoi_gui.name
     
     def get_nguoi_nhan(self, obj):
         return obj.nguoi_nhan.name
