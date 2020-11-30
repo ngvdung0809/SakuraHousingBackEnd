@@ -1,6 +1,12 @@
+import datetime
+
 from django.contrib.contenttypes.models import ContentType
+from django.db.models.expressions import F, ExpressionWrapper
+from django.db.models.fields import DateField, DurationField
+from django.db.models.functions.comparison import Cast
 from django.db.models.query import Prefetch
 from django.db.models.query_utils import Q
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -14,7 +20,8 @@ from apps.contract.models import HDGroups, HDThue, HDMoiGioi, HDDichVu, HD2DichV
 from apps.contract.versions.v1.serializers.request_serializer import HDGroupRequestSerializer, \
     HDMoiGioiRequestSerializer, HDDichVuRequestSerializer, HDThueRequestSerializer, SubHDGroupRequestSerializer
 from apps.contract.versions.v1.serializers.response_serializer import HDGroupResponseSerializer, \
-    HDThueResponseSerializer, HDMoiGioiResponseSerializer, HDDichVuResponseSerializer, SubHDGroupResponseSerializer
+    HDThueResponseSerializer, HDMoiGioiResponseSerializer, HDDichVuResponseSerializer, SubHDGroupResponseSerializer, \
+    HDThueExpiredResponseSerializer
 from apps.payment.models import ServiceTransactions, PaymentTransactions
 from apps.utils.error_code import ErrorCode
 from apps.utils.exception import CustomException
@@ -154,11 +161,21 @@ class HDGroupView:
 
 
 class HDThueView:
+    search_field = openapi.Parameter(
+        'search',
+        openapi.IN_QUERY,
+        description="Tim kiem theo ten can ho",
+        type=openapi.TYPE_STRING
+    )
+    
     @method_decorator(name='update', decorator=swagger_auto_schema(auto_schema=None))
     @method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
     @method_decorator(name='create', decorator=swagger_auto_schema(auto_schema=None))
     @method_decorator(name='retrieve', decorator=swagger_auto_schema(auto_schema=None))
     @method_decorator(name='destroy', decorator=swagger_auto_schema(auto_schema=None))
+    @method_decorator(name='contract_expired', decorator=swagger_auto_schema(
+        manual_parameters=[search_field]
+    ))
     class HDThueViewSet(GenericViewSet):
         permission_classes = [IsAdminRole]
         serializer_class = HDThueResponseSerializer
@@ -189,7 +206,19 @@ class HDThueView:
         
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='contract-expired')
         def contract_expired(self, request, *args, **kwargs):
-            pass
+            search = self.request.GET.get("search", None)
+            query = HDThue.objects.annotate(
+                now=Cast(timezone.now(), output_field=DateField())
+            ).annotate(
+                diff=ExpressionWrapper(F('end_date') - F('now'), output_field=DurationField())
+            ).filter(diff__lte=datetime.timedelta(30)).select_related('khach_thue', 'hd_group__can_ho',
+                                                                      'hd_group__can_ho__chu_nha',
+                                                                      'hd_group__can_ho__toa_nha',
+                                                                      'hd_group__can_ho__toa_nha__district')
+            if search:
+                query = query.filter(hd_group__can_ho__name__icontains=search)
+            results = HDThueExpiredResponseSerializer(query, many=True).data
+            return super().custom_response(results)
 
 
 class HDMoiGioiView:

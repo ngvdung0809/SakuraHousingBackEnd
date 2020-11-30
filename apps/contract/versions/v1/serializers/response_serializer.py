@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from apps.authentication.versions.v1.serializers.response_serializer import TenantResponseSerializer
 from apps.common.versions.v1.serializers.response_serializer import CanHoResponseSerializer, \
-    KhachThueResponseSerializer, DichVuResponseSerializer
+    KhachThueResponseSerializer, DichVuResponseSerializer, ChuNhaResponseSerializer
 from apps.contract.models import HDGroups, HDThue, HDMoiGioi, HDDichVu, HD2DichVus
 
 
@@ -136,3 +136,41 @@ class SubHDGroupResponseSerializer(serializers.ModelSerializer):
             'can_ho',
             'created_at',
         ]
+
+
+class HDThueExpiredResponseSerializer(HDThueResponseSerializer):
+    can_ho = serializers.SerializerMethodField()
+    time = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = HDThue
+        fields = [
+            'id',
+            'khach_thue',
+            'can_ho',
+            'start_date',
+            'end_date',
+            'dk_gia_han',
+            'gia_thue_per_month',
+            'gia_thue_per_month_nt',
+            'ky_tt',
+            'tien_dat_coc',
+            'tien_dat_coc_nt',
+            'note',
+            'ngoai_te',
+            'ty_gia',
+            'ngay_lay_ti_gia',
+            'ngay_ki',
+            'ngay_nhan',
+            'ngay_tra',
+            'type_contract',
+            'time'
+        ]
+    
+    def get_time(self, obj):
+        if obj.diff:
+            return obj.diff.days
+        return 0
+    
+    def get_can_ho(self, obj):
+        return CanHoResponseSerializer(obj.hd_group.can_ho).data

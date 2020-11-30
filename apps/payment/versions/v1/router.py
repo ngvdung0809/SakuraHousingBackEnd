@@ -5,5 +5,6 @@ from apps.payment.versions.v1.views import payment_view
 
 payment_urlpatterns = []
 payment_route = DefaultRouter()
+payment_route.register(r'v1/service-payment', payment_view.PaymentServiceView.PaymentServiceViewSet)
 payment_route.register(r'v1', payment_view.PaymentView.PaymentViewSet)
 payment_urlpatterns += payment_route.urls
