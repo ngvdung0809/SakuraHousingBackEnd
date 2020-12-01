@@ -1,85 +1,95 @@
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.db import models
-
-from apps.utils.constants import GenderType
+from apps.utils.constants import RoleType
 
 
 # Create your models here.
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, username, email, password=None):
-        if not email:
-            raise ValueError('must have an email address.')
-        usuario = self.model(email=self.normalize_email(email), username=username)
+    def create_user(self, username, password=None):
+        if not username:
+            raise ValueError('must have an username.')
+        usuario = self.model(username=username)
         usuario.set_password(password)
         usuario.save(using=self._db)
         return usuario
-    
-    def create_superuser(self, username, email, password):
-        usuario = self.create_user(email=email, username=username, password=password)
-        usuario.is_active = True
+
+    def create_superuser(self, username, password):
+        usuario = self.create_user(username=username, password=password)
         usuario.is_admin = True
         usuario.save(using=self._db)
         return usuario
 
 
-CHOICE_GENDER = (
-    (GenderType.MALE.value, "Male"),
-    (GenderType.FEMALE.value, "Female"),
-    (GenderType.OTHER.value, "Other"),
+CHOICE_ROLE = (
+    (RoleType.ADMIN.value, "Admin"),
+    (RoleType.VIEWER.value, "Viewer"),
+    (RoleType.DISABLE.value, "Disable"),
 )
 
 
-class Company(models.Model):
-    company_code = models.CharField(max_length=255)
+class Tenants(models.Model):
     name = models.CharField(max_length=255)
-    company_type = models.IntegerField()
-    unlock_id = models.IntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    deleted_at = models.DateTimeField(default=None, null=True)
-    
+    address = models.CharField(max_length=255)
+    description = models.CharField(max_length=512, null=True, blank=True)
+    phone = models.CharField(max_length=255)
+    phone2 = models.CharField(max_length=255, null=True, blank=True)
+    email = models.CharField(max_length=255)
+    email2 = models.CharField(max_length=255, null=True, blank=True)
+    dkkd = models.CharField(max_length=255)
+    tax_code = models.CharField(max_length=255)
+    rep = models.CharField(max_length=255)
+    rep_role = models.CharField(max_length=512)
+    ten_tk = models.CharField(max_length=255)
+    so_TK = models.CharField(max_length=255)
+    chi_nhanh = models.CharField(max_length=255)
+    ngan_hang = models.CharField(max_length=255)
+    ten_tk2 = models.CharField(max_length=255, null=True, blank=True)
+    so_TK2 = models.CharField(max_length=255, null=True, blank=True)
+    chi_nhanh2 = models.CharField(max_length=255, null=True, blank=True)
+    ngan_hang2 = models.CharField(max_length=255, null=True, blank=True)
+    note = models.CharField(max_length=512, null=True, blank=True)
+
     class Meta:
-        db_table = 'company'
-    
+        db_table = 'tenants'
+
     def __str__(self):
-        return '{}-{}'.format(self.id, self.name)
+        return '{}-{}-{}'.format(self.id, self.name, self.address)
 
 
-class User(AbstractBaseUser):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True)
-    username = models.CharField(max_length=255)
-    email = models.EmailField(max_length=255, unique=True)
-    gender = models.IntegerField(choices=CHOICE_GENDER, default=GenderType.MALE.value)
-    birthday = models.DateField(blank=True, null=True)
-    is_active = models.BooleanField(default=False)
+class Accounts(AbstractBaseUser):
+    tenant = models.ForeignKey(Tenants, on_delete=models.CASCADE)
+    username = models.CharField(max_length=255, unique=True)
+    full_name = models.CharField(max_length=255)
+    role = models.IntegerField(choices=CHOICE_ROLE, default=RoleType.VIEWER.value)
     is_admin = models.BooleanField(default=False)
+    staff_code = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(default=None, blank=True, null=True)
-    
+
     objects = UserManager()
-    
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
-    
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['role']
+
     class Meta:
-        db_table = 'user'
-    
+        db_table = 'accounts'
+
     def __str__(self):
         return '{}-{}'.format(self.id, self.username)
-    
+
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
         # Simplest possible answer: Yes, always
         return True
-    
+
     def has_module_perms(self, app_label):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always
         return True
-    
+
     @property
     def is_staff(self):
         "Is the user a member of staff?"
@@ -87,25 +97,13 @@ class User(AbstractBaseUser):
         return self.is_admin
 
 
-class UserAuth(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    auth_code = models.CharField(max_length=6, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        db_table = 'user_auth'
-    
-    def __str__(self):
-        return '{}-{}'.format(self.id, self.auth_code)
-
-
 class Token(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(Accounts, on_delete=models.CASCADE)
     token = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         db_table = 'token'
-    
+
     def __str__(self):
         return "{} - {} - {}".format(self.id, self.user_id, self.token)

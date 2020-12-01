@@ -1,13 +1,9 @@
-from dateutil.relativedelta import relativedelta
+import re
+
 from django.contrib.auth import authenticate
-from django.utils import timezone
 from rest_framework import serializers
 
-from apps.authentication.models import User, Company, UserAuth
-import re
-from datetime import datetime, date
-from django.conf import settings
-
+from apps.authentication.models import Accounts, Tenants
 from apps.utils.config import PasswordRegex
 from apps.utils.error_code import ErrorCode
 from apps.utils.exception import CustomException
@@ -21,28 +17,15 @@ class EmptySerializer(serializers.Serializer):
         pass
 
 
-class UserCreateSerializer(serializers.ModelSerializer):
-    birthday = serializers.CharField(required=True, max_length=255)
-    company_code = serializers.CharField(max_length=4, min_length=4, required=False)
-    email = serializers.EmailField(required=True, max_length=255)
+class AccountCreateSerializer(serializers.ModelSerializer):
+    staff_code = serializers.CharField(min_length=4, required=False)
     
     class Meta:
-        model = User
-        fields = ('email', 'password', 'username', 'gender', 'birthday', 'company_code')
+        model = Accounts
+        fields = ('username', 'password', 'full_name', 'role', 'staff_code', 'tenant')
         extra_kwargs = {
-            'company_code': {'required': False},
-            'birthday': {'input_formats': settings.DATE_FORMATS},
+            'staff_code': {'required': False},
         }
-    
-    def validate_birthday(self, value):
-        try:
-            current_date = date.today()
-            birthday_user = datetime.strptime(value, settings.DATE_FORMATS[0])
-        except Exception as e:
-            raise CustomException(ErrorCode.birthday_invalid_format)
-        if birthday_user.date() > current_date:
-            raise CustomException(ErrorCode.birthday_invalid_date)
-        return birthday_user.date()
     
     def validate_password(self, value):
         if not re.search(PasswordRegex.password_regex, value):
@@ -50,29 +33,24 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return value
     
     def create(self, validated_data):
-        try:
-            user = User.objects.filter(email=validated_data.get('email')).get()
-            if user.is_active:
-                raise CustomException(ErrorCode.account_has_exist)
-        except User.DoesNotExist:
-            user = User(
-                email=validated_data.get('email'),
-                username=validated_data.get('username'),
-                gender=validated_data.get('gender'),
-                birthday=validated_data.get('birthday'),
-                company=validated_data.get('company', None),
-            )
-            user.set_password(validated_data.get('password'))
-            user.save()
+        user = Accounts(
+            username=validated_data.get('username'),
+            full_name=validated_data.get('full_name'),
+            staff_code=validated_data.get('staff_code', None),
+            role=validated_data.get('role'),
+            tenant=validated_data.get('tenant'),
+        )
+        user.set_password(validated_data.get('password'))
+        user.save()
         return user
 
 
 class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
+    username = serializers.CharField(required=True)
     password = serializers.CharField(min_length=6, required=True)
     
     def validate(self, attrs):
-        user = authenticate(email=attrs['email'], password=attrs['password'])
+        user = authenticate(username=attrs['username'], password=attrs['password'])
         if not user:
             raise CustomException(ErrorCode.login_fail)
         return user
@@ -84,57 +62,64 @@ class LoginSerializer(serializers.Serializer):
         pass
 
 
-class CheckEmailSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True, max_length=255)
+class TenantRequestSerializer(serializers.ModelSerializer):
+    phone2 = serializers.CharField(required=False)
+    email2 = serializers.CharField(required=False)
+    ten_tk2 = serializers.CharField(required=False)
+    so_TK2 = serializers.CharField(required=False)
+    chi_nhanh2 = serializers.CharField(required=False)
+    ngan_hang2 = serializers.CharField(required=False)
+    note = serializers.CharField(required=False)
     
-    def validate(self, attrs):
-        if User.objects.filter(email=attrs['email']).exists():
-            raise CustomException(ErrorCode.has_exist_email)
-        return attrs
-    
-    def create(self, validated_data):
-        pass
-    
-    def update(self, instance, validated_data):
-        pass
-
-
-class CheckCompanySerializer(serializers.Serializer):
-    company_code = serializers.CharField(max_length=4, min_length=4)
-    
-    def validate(self, attrs):
-        if not Company.objects.filter(company_code=attrs['company_code']).exists():
-            raise CustomException(ErrorCode.not_found_company)
-        return attrs
+    class Meta:
+        model = Tenants
+        fields = ['name', 'address', 'description', 'phone', 'phone2', 'email', 'email2', 'dkkd', 'tax_code', 'rep',
+                  'rep_role', 'ten_tk', 'so_TK', 'chi_nhanh', 'ngan_hang', 'ten_tk2', 'so_TK2', 'chi_nhanh2',
+                  'ngan_hang2', 'note']
     
     def create(self, validated_data):
-        pass
+        tenant = Tenants.objects.create(**self.validated_data)
+        return tenant
     
     def update(self, instance, validated_data):
-        pass
+        for i in validated_data.keys():
+            setattr(instance, i, validated_data[i])
+        instance.save()
+        return instance
 
 
-class CheckOTPCodeSerializer(serializers.Serializer):
-    user = serializers.IntegerField(required=True)
-    otp_code = serializers.CharField(max_length=6, required=True)
+class AccountRequestSerializer(serializers.ModelSerializer):
+    staff_code = serializers.CharField(min_length=4, required=False)
+    
+    class Meta:
+        model = Accounts
+        fields = ('full_name', 'role', 'staff_code', 'tenant')
+    
+    def update(self, instance, validated_data):
+        for i in validated_data.keys():
+            setattr(instance, i, validated_data[i])
+        instance.save()
+        return instance
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(max_length=128, required=True)
+    new_password = serializers.CharField(max_length=128, required=True)
+    
+    def validate_new_password(self, value):
+        if not re.search(PasswordRegex.password_regex, value):
+            raise CustomException(ErrorCode.password_invalid)
+        return value
     
     def validate(self, attrs):
-        try:
-            user_code = UserAuth.objects.filter(
-                user_id=attrs['user'],
-                auth_code=attrs['otp_code']
-            ).get()
-            # check time code
-            if not user_code.created_at >= timezone.now() - relativedelta(minutes=3):
-                raise CustomException(ErrorCode.otp_code_has_expired)
-            return user_code.user
-        except UserAuth.DoesNotExist:
-            raise CustomException(ErrorCode.wrong_data)
+        request = self.context['request']
+        user = Accounts.objects.get(id=request.user.id)
+        if not user.check_password(attrs.get('old_password', None)):
+            raise serializers.ValidationError('wrong password')
+        return {'user': user, 'new_password': attrs['new_password']}
     
     def save(self, **kwargs):
-        user = self.validated_data
-        user.is_active = True
+        user = self.validated_data['user']
+        user.set_password(self.validated_data['new_password'])
         user.save()
-        # delete otp code
-        UserAuth.objects.filter(user=user).delete()
         return user

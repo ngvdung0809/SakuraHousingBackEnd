@@ -1,10 +1,7 @@
 class PasswordRegex:
-    password_regex = "^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*?]{6,50}$"
+    password_regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d!@#$%^&*?]{8,50}$"
 
 
 class MailSubject:
-    activation = 'Happiness Book会員認証コードのお知らせ'
-
-
-class OTPString:
-    otp_string = "0123456789"
+    payment = 'Nhắc hẹn thanh toán'
+    warning_payment = 'Nhắc nhở thanh toán quá hạn'

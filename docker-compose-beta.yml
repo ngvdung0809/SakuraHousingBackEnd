@@ -3,11 +3,12 @@ version: '3.3'
 services:
 
   web:
-    container_name: sakur-housing-beta-web
+    container_name: sakura-housing-beta-web
     build: .
     command: bash -c "./entry-point.sh"
     volumes:
       - .:/code
+      - ./logs/debug.log:/webapp/logs/debug.log
     environment:
       ENVIRONMENT: 'beta'
     restart: always
@@ -19,26 +20,13 @@ services:
     depends_on:
       - web
     ports:
-      - 80:80
-      - 443:443
+      - 8998:80
     volumes:
       - ./nginx/snippets:/etc/nginx/snippets
-      - ./nginx/certs:/etc/nginx/certs
-      - ./nginx/dhparam.pem:/etc/nginx/dhparam.pem
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-      placement:
-        constraints:
-          - node.labels.role == normal
-      resources:
-        limits:
-          memory: 1024M
 
   database:
     container_name: sakura-housing-development
-    image: postgres:lastest
+    image: postgres:latest
     restart: always
     environment:
       POSTGRES_PASSWORD: admin123
@@ -48,11 +36,6 @@ services:
       DB_VENDOR: postgres
       DESTROY_DATABASE_ON_RESTART: 'False'
     ports:
-      - 5433:5432
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-      placement:
-        constraints:
-          - node.labels.role == tanker
+      - 5435:5432
+    volumes:
+      - ~/.happy_app/data:/var/lib/postgresql/data

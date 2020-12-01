@@ -36,8 +36,11 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'rest_framework',
     'apps.authentication',
-    'apps.answer',
-    'apps.question',
+    'apps.common',
+    'apps.contract',
+    'apps.payment',
+    'corsheaders',
+    'django_filters',
 ]
 if DEBUG:
     INSTALLED_APPS += [
@@ -57,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'silk.middleware.SilkyMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 # FCM_DJANGO_SETTINGS = {
@@ -148,6 +152,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'apps.authentication.utils.custom_auth.CustomAuthentication',
     ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
     # 'DEFAULT_AUTHENTICATION_CLASSES': [
     #     'rest_framework.authentication.BasicAuthentication',
     #     'rest_framework.authentication.SessionAuthentication',
@@ -165,7 +172,7 @@ DATABASES = {
         'HOST': env_config('DATABASE_HOST'),
         'PORT': env_config('DATABASE_PORT'),
     }
-    
+
 }
 
 SWAGGER_SETTINGS = {
@@ -175,7 +182,7 @@ SWAGGER_SETTINGS = {
     'REFETCH_SCHEMA_WITH_AUTH': True,
     'REFETCH_SCHEMA_ON_LOGOUT': True,
     'DEFAULT_INFO': 'SpaceShare.urls.swagger.swagger_info',
-    
+
     'SECURITY_DEFINITIONS': {
         'JWT': {
             'type': 'apiKey',
@@ -184,10 +191,10 @@ SWAGGER_SETTINGS = {
         }
     },
     'DOC_EXPANSION': 'none',
-    
+
 }
 
-AUTH_USER_MODEL = 'authentication.User'
+AUTH_USER_MODEL = 'authentication.Accounts'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
@@ -228,3 +235,22 @@ LOGGING = {
 }
 DATE_FORMATS = ('%d-%m-%Y', '%Y-%m-%d')
 DATE_TIME_FORMATS = ('%d-%m-%Y %H:%M:%S', '%d/%m/%Y')
+
+EMAIL_HOST = env_config.get('EMAIL_HOST')
+EMAIL_HOST_USER = env_config.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env_config.get('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = env_config.get('EMAIL_PORT')
+EMAIL_USE_TLS = env_config.get('EMAIL_USE_TLS')
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ALLOW_METHODS = (
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+)
+
+CORS_ALLOW_CREDENTIALS = True

@@ -1,13 +1,19 @@
 from rest_framework import serializers
 
-from SakuraHousing import settings
-from apps.authentication.models import User
+from apps.authentication.models import Accounts, Tenants
+
+
+class TenantResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tenants
+        fields = ['id', 'name', 'address', 'description', 'phone', 'phone2', 'email', 'email2', 'dkkd', 'tax_code',
+                  'rep', 'rep_role', 'ten_tk', 'so_TK', 'chi_nhanh', 'ngan_hang', 'ten_tk2', 'so_TK2', 'chi_nhanh2',
+                  'ngan_hang2', 'note']
 
 
 class UserResponseSerializer(serializers.ModelSerializer):
+    tenant = TenantResponseSerializer()
+
     class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'gender', 'birthday', 'is_active', 'is_admin', 'created_at']
-        extra_kwargs = {
-            'created_at': {'format': settings.DATE_TIME_FORMATS[0]},
-        }
+        model = Accounts
+        fields = ('id', 'username', 'full_name', 'role', 'staff_code', 'tenant')

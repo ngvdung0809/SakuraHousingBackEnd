@@ -1,7 +1,7 @@
 DEBUG=False
 ALLOWED_HOSTS=[*]
 SECRET_KEY=x9&_12345#uo2-ql9@ydtxt8i#o94@b-)ccunc($yl-%gqq0eao
-DATABASE_HOST=127.0.0.1
+DATABASE_HOST=database
 DATABASE_PORT=5432
 POSTGRES_DB=sakura-housing
 POSTGRES_USER=admin
@@ -11,3 +11,9 @@ DB_VENDOR=postgres
 DESTROY_DATABASE_ON_RESTART=False
 
 LANGUAGE_CODE=en-us
+
+EMAIL_HOST=smtp.gmail.com
+EMAIL_HOST_USER=housing.noreply@gmail.com
+EMAIL_HOST_PASSWORD=4ab'b5PV8a
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
