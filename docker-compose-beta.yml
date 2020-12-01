@@ -20,7 +20,7 @@ services:
     depends_on:
       - web
     ports:
-      - 8081:80
+      - 8998:80
     volumes:
       - ./nginx/snippets:/etc/nginx/snippets
 
