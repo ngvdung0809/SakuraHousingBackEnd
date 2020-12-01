@@ -26,10 +26,10 @@ from apps.payment.urls import urlpatterns as payment_urlpatterns
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="HapinessBook API",
+        title="Sakura API",
         default_version='v1',
-        description="Document of HapinessBook nurse API",
-        contact=openapi.Contact(email="dung.nguyenviet@mor.com.vn"),
+        description="Document of Sakura API",
+        contact=openapi.Contact(email="ngvdung0809@gmail.com"),
         license=openapi.License(name="BSD License"),
     ),
     public=True,
