@@ -1,7 +1,9 @@
 from datetime import datetime
 
 # Create your views here.
+from django.db.models import Q
 from django.utils.decorators import method_decorator
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import action
@@ -33,7 +35,7 @@ class AuthenticationView:
     # ))
     class AuthenticationViewSet(JSONWebTokenAPIView):
         serializer_class = LoginSerializer
-        
+
         def post(self, request, *args, **kwargs):
             serializer = LoginSerializer(data=request.data)
             if serializer.is_valid(raise_exception=True):
@@ -50,7 +52,7 @@ class AuthenticationView:
 class LogoutViewSet(APIView):
     serializer_class = EmptySerializer
     permission_classes = (IsAuthenticated,)
-    
+
     def post(self, request, *args, **kwargs):
         token = request.auth.token
         Token.objects.filter(user=request.user, token=token).delete()
@@ -70,38 +72,48 @@ class UserCreateView:
     class UserCreateViewSet(GenericViewSet):
         serializer_class = AccountCreateSerializer
         queryset = Accounts.objects.select_related('tenant').all()
-        
+
         # permission_classes = [IsAdminRole]
-        
+
         def list(self, request, custom_queryset=None, custom_query_params=None, *args, **kwargs):
             pass
-        
+
         def retrieve(self, request, custom_object=None, *args, **kwargs):
             pass
-        
+
         def destroy(self, request, *args, **kwargs):
             pass
-        
+
         def update(self, request, custom_instance=None, custom_data=None, *args, **kwargs):
             pass
-        
+
         def partial_update(self, request, custom_instance=None, custom_data=None, *args, **kwargs):
             pass
-        
+
         def create(self, request, *args, **kwargs):
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            
+
             instance = self.perform_create(serializer)
-            
+
             general_response = rsp.Response(UserResponseSerializer(instance).data).generate_response()
             response = Response(general_response, status=status.HTTP_201_CREATED)
             return response
 
 
 class TenantView:
+    search_field = openapi.Parameter(
+        'search',
+        openapi.IN_QUERY,
+        description="Tim kiem theo ten toa nha",
+        type=openapi.TYPE_STRING
+    )
+
     @method_decorator(name='update', decorator=swagger_auto_schema(auto_schema=None))
     @method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
+    @method_decorator(name='list_tenant', decorator=swagger_auto_schema(
+        manual_parameters=[search_field]
+    ))
     @method_decorator(name='destroy', decorator=swagger_auto_schema(auto_schema=None))
     class TenantViewSet(GenericViewSet):
         serializer_class = TenantRequestSerializer
@@ -113,39 +125,45 @@ class TenantView:
             'detail_tenant_response': TenantResponseSerializer
         }
         permission_classes = [IsAdminRole]
-        
+
         def list(self, request, custom_queryset=None, custom_query_params=None, *args, **kwargs):
             pass
-        
+
         def retrieve(self, request, custom_object=None, *args, **kwargs):
             pass
-        
+
         def destroy(self, request, *args, **kwargs):
             pass
-        
+
         def partial_update(self, request, custom_instance=None, custom_data=None, *args, **kwargs):
             try:
                 obj = Tenants.objects.get(pk=kwargs['pk'])
             except Tenants.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
             return super().partial_update(request, custom_instance=obj, *args, **kwargs)
-        
+
         def create(self, request, *args, **kwargs):
             serializer = self.get_request_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            
+
             tenant = serializer.save()
-            
+
             general_response = rsp.Response(TenantResponseSerializer(tenant).data).generate_response()
             response = Response(general_response, status=status.HTTP_201_CREATED)
             return response
-        
+
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='list-tenant')
         def list_tenant(self, request, *args, **kwargs):
             query = Tenants.objects.all()
+            search = self.request.GET.get("search", None)
+            if search:
+                query = query.filter(
+                    Q(name__icontains=search) |
+                    Q(address__icontains=search)
+                )
             results = self.get_response_serializer(query, many=True).data
             return super().custom_response(results)
-        
+
         @action(detail=True, permission_classes=[IsAuthenticated], methods=['get'], url_path='detail-tenant')
         def detail_tenant(self, request, *args, **kwargs):
             try:
@@ -156,12 +174,22 @@ class TenantView:
 
 
 class AccountView:
+    search_field = openapi.Parameter(
+        'search',
+        openapi.IN_QUERY,
+        description="Tim kiem theo ten toa nha",
+        type=openapi.TYPE_STRING
+    )
+
     @method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
     @method_decorator(name='create', decorator=swagger_auto_schema(auto_schema=None))
     @method_decorator(name='retrieve', decorator=swagger_auto_schema(auto_schema=None))
     @method_decorator(name='update', decorator=swagger_auto_schema(auto_schema=None))
     # @method_decorator(name='partial_update', decorator=swagger_auto_schema(auto_schema=None))
     @method_decorator(name='destroy', decorator=swagger_auto_schema(auto_schema=None))
+    @method_decorator(name='list_account', decorator=swagger_auto_schema(
+        manual_parameters=[search_field]
+    ))
     class AccountViewSet(GenericViewSet):
         serializer_class = AccountRequestSerializer
         queryset = Accounts.objects.all()
@@ -171,35 +199,41 @@ class AccountView:
             'delete_multi_request': MultiDeleteRequestSerializer
         }
         permission_classes = [IsAdminRole]
-        
+
         def retrieve(self, request, custom_object=None, *args, **kwargs):
             pass
-        
+
         def destroy(self, request, *args, **kwargs):
             pass
-        
+
         def partial_update(self, request, custom_instance=None, custom_data=None, *args, **kwargs):
             try:
                 obj = Accounts.objects.get(pk=kwargs['pk'])
             except Tenants.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
             return super().partial_update(request, custom_instance=obj, *args, **kwargs)
-        
+
         def create(self, request, *args, **kwargs):
             pass
-        
+
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='list-account')
         def list_account(self, request, *args, **kwargs):
+            search = self.request.GET.get("search", None)
+            if search:
+                self.queryset = self.queryset.filter(
+                    Q(username__icontains=search) |
+                    Q(full_name__icontains=search)
+                )
             return super().list(request, *args, **kwargs)
-        
+
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete_account')
         def delete_multi(self, request, *args, **kwargs):
             serializer = self.get_request_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             Accounts.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
-            
+
             return super().custom_response({})
-        
+
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='overview')
         def overview(self, request, *args, **kwargs):
             count_chu_nha = ChuNhas.objects.count()
@@ -237,7 +271,7 @@ class ChangePassWordView:
         action_serializers = {
             'change_password_request': ChangePasswordSerializer
         }
-        
+
         @action(detail=False, methods=['post'], url_path='change-password')
         def change_password(self, request, *args, **kwargs):
             serializer = self.get_serializer(data=request.data)
