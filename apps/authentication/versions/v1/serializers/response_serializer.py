@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.authentication.models import Accounts, Tenants
+from apps.utils.constants import RoleType
 
 
 class TenantResponseSerializer(serializers.ModelSerializer):
@@ -13,7 +14,16 @@ class TenantResponseSerializer(serializers.ModelSerializer):
 
 class UserResponseSerializer(serializers.ModelSerializer):
     tenant = TenantResponseSerializer()
+    role = serializers.SerializerMethodField()
 
     class Meta:
         model = Accounts
         fields = ('id', 'username', 'full_name', 'role', 'staff_code', 'tenant')
+
+    def get_role(self, obj):
+        if obj.role == RoleType.ADMIN.value:
+            return 'Admin'
+        elif obj.role == RoleType.VIEWER.value:
+            return 'View'
+        else:
+            return 'Disable'
