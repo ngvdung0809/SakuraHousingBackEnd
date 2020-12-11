@@ -7,6 +7,7 @@ from rest_framework_jwt.utils import jwt_encode_handler
 
 import apps.utils.response_interface as rsp
 from apps.authentication.models import Token
+from apps.authentication.versions.v1.serializers.response_serializer import UserResponseSerializer
 from apps.utils.constants import RoleType
 from apps.utils.error_code import ErrorCode
 from apps.utils.exception import CustomException
@@ -70,8 +71,10 @@ class JWTToken(object):
             'time_create': self.token,
         }
         token = jwt_encode_handler(payload)
+        profile = UserResponseSerializer(self.user).data
         response_data = {
-            'token': token
+            'token': token,
+            'profile': profile
         }
         general_response = rsp.Response(response_data).generate_response()
         response = Response(general_response, status=status)
