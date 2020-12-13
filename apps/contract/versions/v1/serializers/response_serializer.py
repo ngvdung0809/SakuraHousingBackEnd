@@ -134,6 +134,7 @@ class SubHDGroupResponseSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'can_ho',
+            'nhan_vien',
             'created_at',
         ]
 

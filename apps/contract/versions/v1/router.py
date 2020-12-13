@@ -6,7 +6,5 @@ from apps.contract.versions.v1.views import contract_view
 hd_group_urlpatterns = []
 hd_group_route = DefaultRouter()
 hd_group_route.register(r'v1/hd-thue', contract_view.HDThueView.HDThueViewSet)
-hd_group_route.register(r'v1/hd-moi-gioi', contract_view.HDMoiGioiView.HDMoiGioiViewSet)
-hd_group_route.register(r'v1/hd-dich-vu', contract_view.HDDichVuView.HDDichVuViewSet)
 hd_group_route.register(r'v1', contract_view.HDGroupView.HDGroupViewSet)
 hd_group_urlpatterns += hd_group_route.urls
