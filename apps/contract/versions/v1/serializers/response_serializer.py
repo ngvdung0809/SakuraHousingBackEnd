@@ -1,14 +1,14 @@
 from rest_framework import serializers
 
-from apps.authentication.versions.v1.serializers.response_serializer import TenantResponseSerializer
+from apps.authentication.versions.v1.serializers.response_serializer import UserResponseSerializer
 from apps.common.versions.v1.serializers.response_serializer import CanHoResponseSerializer, \
-    KhachThueResponseSerializer, DichVuResponseSerializer, ChuNhaResponseSerializer
+    KhachThueResponseSerializer, DichVuResponseSerializer
 from apps.contract.models import HDGroups, HDThue, HDMoiGioi, HDDichVu, HD2DichVus
 
 
 class HD2DichVusResponseSerializer(serializers.ModelSerializer):
     dich_vu = DichVuResponseSerializer()
-    
+
     class Meta:
         model = HD2DichVus
         fields = [
@@ -22,7 +22,7 @@ class HD2DichVusResponseSerializer(serializers.ModelSerializer):
 
 class HDThueResponseSerializer(serializers.ModelSerializer):
     khach_thue = KhachThueResponseSerializer()
-    
+
     class Meta:
         model = HDThue
         fields = [
@@ -49,7 +49,7 @@ class HDThueResponseSerializer(serializers.ModelSerializer):
 
 class SubHDThueResponseSerializer(HDThueResponseSerializer):
     services = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = HDThue
         fields = [
@@ -73,19 +73,16 @@ class SubHDThueResponseSerializer(HDThueResponseSerializer):
             'type_contract',
             'services'
         ]
-    
+
     def get_services(self, obj):
         return HD2DichVusResponseSerializer(obj.list_service, many=True).data
 
 
 class HDMoiGioiResponseSerializer(serializers.ModelSerializer):
-    tenant = TenantResponseSerializer()
-    
     class Meta:
         model = HDMoiGioi
         fields = [
             'id',
-            'tenant',
             'tien_moi_gioi',
             'note',
             'type_contract'
@@ -93,13 +90,10 @@ class HDMoiGioiResponseSerializer(serializers.ModelSerializer):
 
 
 class HDDichVuResponseSerializer(serializers.ModelSerializer):
-    tenant = TenantResponseSerializer()
-    
     class Meta:
         model = HDDichVu
         fields = [
             'id',
-            'tenant',
             'tien_thuc_linh',
             'tien_dich_vu',
             'thoi_gian_thanh_toan',
@@ -110,16 +104,18 @@ class HDDichVuResponseSerializer(serializers.ModelSerializer):
 
 class HDGroupResponseSerializer(serializers.ModelSerializer):
     can_ho = CanHoResponseSerializer()
+    nhan_vien = UserResponseSerializer()
     hd_thues = SubHDThueResponseSerializer(many=True)
     hd_moi_giois = HDMoiGioiResponseSerializer(many=True)
     hd_dich_vus = HDDichVuResponseSerializer(many=True)
-    
+
     class Meta:
         model = HDGroups
         fields = [
             'id',
             'name',
             'can_ho',
+            'nhan_vien',
             'hd_thues',
             'hd_moi_giois',
             'hd_dich_vus',
@@ -128,6 +124,8 @@ class HDGroupResponseSerializer(serializers.ModelSerializer):
 
 
 class SubHDGroupResponseSerializer(serializers.ModelSerializer):
+    can_ho = CanHoResponseSerializer()
+
     class Meta:
         model = HDGroups
         fields = [
@@ -140,15 +138,15 @@ class SubHDGroupResponseSerializer(serializers.ModelSerializer):
 
 
 class HDThueExpiredResponseSerializer(HDThueResponseSerializer):
-    can_ho = serializers.SerializerMethodField()
+    hd_group = SubHDGroupResponseSerializer()
     time = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = HDThue
         fields = [
             'id',
             'khach_thue',
-            'can_ho',
+            'hd_group',
             'start_date',
             'end_date',
             'dk_gia_han',
@@ -167,11 +165,11 @@ class HDThueExpiredResponseSerializer(HDThueResponseSerializer):
             'type_contract',
             'time'
         ]
-    
+
     def get_time(self, obj):
         if obj.diff:
             return obj.diff.days
         return 0
-    
+
     def get_can_ho(self, obj):
         return CanHoResponseSerializer(obj.hd_group.can_ho).data

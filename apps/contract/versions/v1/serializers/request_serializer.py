@@ -16,6 +16,11 @@ class HD2DichVusRequestSerializer(serializers.ModelSerializer):
     dinh_muc = serializers.IntegerField(required=False)
     note = serializers.CharField(max_length=255, required=False)
 
+    def validate_ky_tt(self, value):
+        if value < 1:
+            raise CustomException(ErrorCode.error_json_parser)
+        return value
+
     class Meta:
         model = HD2DichVus
         fields = [
@@ -27,8 +32,12 @@ class HD2DichVusRequestSerializer(serializers.ModelSerializer):
 
 
 class SubHDThueRequestSerializer(serializers.ModelSerializer):
-    dich_vu = HD2DichVusRequestSerializer(many=True)
-    ky_tt = serializers.IntegerField(min_value=1)
+    dich_vu = HD2DichVusRequestSerializer(many=True, required=False)
+
+    def validate_ky_tt(self, value):
+        if value < 1:
+            raise CustomException(ErrorCode.error_json_parser)
+        return value
 
     class Meta:
         model = HDThue
@@ -51,6 +60,7 @@ class SubHDThueRequestSerializer(serializers.ModelSerializer):
             'ngay_tra',
             'dich_vu'
         ]
+        extra_kwargs = {"dich_vu": {"required": False, "allow_null": True}}
 
 
 class SubHDMoiGioiRequestSerializer(serializers.ModelSerializer):
@@ -75,8 +85,8 @@ class SubHDDichVuRequestSerializer(serializers.ModelSerializer):
 
 class HDGroupRequestSerializer(serializers.ModelSerializer):
     hd_thue = SubHDThueRequestSerializer()
-    hd_moi_gioi = SubHDMoiGioiRequestSerializer()
-    hd_dich_vu = SubHDDichVuRequestSerializer()
+    hd_moi_gioi = SubHDMoiGioiRequestSerializer(required=False, allow_null=True)
+    hd_dich_vu = SubHDDichVuRequestSerializer(required=False, allow_null=True)
 
     class Meta:
         model = HDGroups
@@ -89,6 +99,11 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
             'hd_moi_gioi',
             'hd_dich_vu',
         ]
+        extra_kwargs = {
+            "dich_vu": {"required": False, "allow_null": True},
+            "hd_moi_gioi": {"required": False, "allow_null": True},
+            "hd_dich_vu": {"required": False, "allow_null": True},
+        }
 
     @transaction.atomic
     def create(self, validated_data):
@@ -103,19 +118,22 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
         hd_moi_gioi = None
 
         self.validated_data['hd_thue']['hd_group'] = hd_group
-        if self.validated_data['hd_moi_gioi']:
+        if 'hd_moi_gioi' in self.validated_data:
             self.validated_data['hd_moi_gioi']['hd_group'] = hd_group
             hd_moi_gioi = HDMoiGioi.objects.create(**self.validated_data['hd_moi_gioi'])
-        if self.validated_data['hd_dich_vu']:
+        if 'hd_dich_vu' in self.validated_data:
             self.validated_data['hd_dich_vu']['hd_group'] = hd_group
             HDDichVu.objects.create(**self.validated_data['hd_dich_vu'])
 
-        list_dv = self.validated_data['hd_thue']['dich_vu']
-        self.validated_data['hd_thue'].pop('dich_vu')
+        list_dv = self.validated_data['hd_thue'].get('dich_vu', None)
+        self.validated_data['hd_thue'].pop('dich_vu', None)
 
         hd_thue = HDThue.objects.create(**self.validated_data['hd_thue'])
 
-        services = create_hd2_dv(list_dv, hd_thue)
+        if list_dv:
+            services = create_hd2_dv(list_dv, hd_thue)
+            generate_service(services, self.validated_data['hd_thue']['start_date'],
+                             self.validated_data['hd_thue']['end_date'])
 
         generate_payment_hd(
             hd_thue,
@@ -123,8 +141,6 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
             self.validated_data['can_ho'].chu_nha,
             self.validated_data['nhan_vien'].tenant
         )
-        generate_service(services, self.validated_data['hd_thue']['start_date'],
-                         self.validated_data['hd_thue']['end_date'])
 
         return hd_group
 

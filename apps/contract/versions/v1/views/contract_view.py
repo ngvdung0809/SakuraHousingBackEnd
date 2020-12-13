@@ -59,8 +59,13 @@ class HDGroupView:
         }
 
         def common_query(self):
-            query = HDGroups.objects.select_related('can_ho', 'can_ho__chu_nha', 'can_ho__toa_nha',
-                                                    'can_ho__toa_nha__district').prefetch_related(
+            query = HDGroups.objects.select_related(
+                'can_ho', 'can_ho__chu_nha',
+                'can_ho__toa_nha',
+                'can_ho__toa_nha__district',
+                'nhan_vien',
+                'nhan_vien__tenant'
+            ).prefetch_related(
                 Prefetch(
                     'hdthue_set',
                     queryset=HDThue.objects.select_related('khach_thue').prefetch_related(
@@ -75,13 +80,13 @@ class HDGroupView:
             ).prefetch_related(
                 Prefetch(
                     'hdmoigioi_set',
-                    queryset=HDMoiGioi.objects.select_related('tenant').all(),
+                    queryset=HDMoiGioi.objects.all(),
                     to_attr='hd_moi_giois'
                 )
             ).prefetch_related(
                 Prefetch(
                     'hddichvu_set',
-                    queryset=HDDichVu.objects.select_related('tenant').all(),
+                    queryset=HDDichVu.objects.all(),
                     to_attr='hd_dich_vus'
                 )
             ).all()
@@ -206,10 +211,13 @@ class HDThueView:
                 now=Cast(timezone.now(), output_field=DateField())
             ).annotate(
                 diff=ExpressionWrapper(F('end_date') - F('now'), output_field=DurationField())
-            ).filter(diff__lte=datetime.timedelta(30)).select_related('khach_thue', 'hd_group__can_ho',
-                                                                      'hd_group__can_ho__chu_nha',
-                                                                      'hd_group__can_ho__toa_nha',
-                                                                      'hd_group__can_ho__toa_nha__district')
+            ).filter(diff__lte=datetime.timedelta(30)).select_related(
+                'khach_thue', 'hd_group__can_ho',
+                'hd_group__can_ho__chu_nha',
+                'hd_group__can_ho__toa_nha',
+                'hd_group__can_ho__toa_nha__district',
+                'hd_group'
+            )
             if search:
                 query = query.filter(hd_group__can_ho__name__icontains=search)
             results = HDThueExpiredResponseSerializer(query, many=True).data
