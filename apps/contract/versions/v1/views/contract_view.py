@@ -102,7 +102,6 @@ class HDGroupView:
             except HDGroups.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
             return super().partial_update(request, custom_instance=obj, *args, **kwargs)
-            pass
 
         def create(self, request, *args, **kwargs):
             serializer = self.get_request_serializer(data=request.data)

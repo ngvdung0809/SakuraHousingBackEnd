@@ -8,12 +8,12 @@ from apps.payment.models import PaymentTransactions, ServiceTransactions
 def payment_transaction(start_date, end_date, ky_tt):
     c = relativedelta(end_date, start_date)
     d = c.months + 12 * c.years
-    
+
     z = round(d / ky_tt)
-    
+
     a = [start_date]
     b = start_date
-    
+
     for i in range(0, z):
         time = b + relativedelta(months=ky_tt)
         b = time
@@ -21,9 +21,9 @@ def payment_transaction(start_date, end_date, ky_tt):
     return a
 
 
-def generate_payment_hd(hd_thue, hd_moi_gioi, chu_nha):
+def generate_payment_hd(hd_thue, hd_moi_gioi, chu_nha, tenant):
     list_time = payment_transaction(hd_thue.start_date, hd_thue.end_date, hd_thue.ky_tt)
-    
+
     list_obj_hd_thue = [PaymentTransactions(
         hop_dong=hd_thue,
         dot_thanh_toan="T{}".format(i.strftime("%m-%Y")),
@@ -34,7 +34,7 @@ def generate_payment_hd(hd_thue, hd_moi_gioi, chu_nha):
         nguoi_gui=hd_thue.khach_thue,
         nguoi_nhan=chu_nha,
     ) for i in list_time]
-    
+
     if hd_moi_gioi:
         PaymentTransactions.objects.create(
             hop_dong=hd_moi_gioi,
@@ -44,9 +44,9 @@ def generate_payment_hd(hd_thue, hd_moi_gioi, chu_nha):
             ngay_thanh_toan_du_kien=hd_thue.start_date,
             so_tien=hd_moi_gioi.tien_moi_gioi,
             nguoi_gui=chu_nha,
-            nguoi_nhan=hd_moi_gioi.tenant,
+            nguoi_nhan=tenant,
         )
-    
+
     PaymentTransactions.objects.bulk_create(list_obj_hd_thue)
     return True
 

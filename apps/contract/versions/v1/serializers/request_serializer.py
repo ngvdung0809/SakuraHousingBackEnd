@@ -1,5 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
+from django.db.models import Prefetch
 from rest_framework import serializers
 
 from apps.authentication.models import Accounts, Tenants
@@ -27,6 +28,7 @@ class HD2DichVusRequestSerializer(serializers.ModelSerializer):
 
 class SubHDThueRequestSerializer(serializers.ModelSerializer):
     dich_vu = HD2DichVusRequestSerializer(many=True)
+    ky_tt = serializers.IntegerField(min_value=1)
 
     class Meta:
         model = HDThue
@@ -72,18 +74,9 @@ class SubHDDichVuRequestSerializer(serializers.ModelSerializer):
 
 
 class HDGroupRequestSerializer(serializers.ModelSerializer):
-    nhan_vien = serializers.IntegerField()
     hd_thue = SubHDThueRequestSerializer()
     hd_moi_gioi = SubHDMoiGioiRequestSerializer()
     hd_dich_vu = SubHDDichVuRequestSerializer()
-
-    def validate(self, attrs):
-        try:
-            nhan_vien = Accounts.objects.get(pk=attrs['nhan_vien'])
-            attrs['nhan_vien'] = nhan_vien
-            return attrs
-        except Accounts.DoesNotExist:
-            raise CustomException(ErrorCode.not_found_record)
 
     class Meta:
         model = HDGroups
@@ -124,12 +117,18 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
 
         services = create_hd2_dv(list_dv, hd_thue)
 
-        generate_payment_hd(hd_thue, hd_moi_gioi, self.validated_data['can_ho'].chu_nha)
+        generate_payment_hd(
+            hd_thue,
+            hd_moi_gioi,
+            self.validated_data['can_ho'].chu_nha,
+            self.validated_data['nhan_vien'].tenant
+        )
         generate_service(services, self.validated_data['hd_thue']['start_date'],
                          self.validated_data['hd_thue']['end_date'])
 
         return hd_group
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         validated_data['updated_by'] = self.context['request'].user
         # update hd groups
@@ -138,26 +137,35 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
         instance.save()
 
         # update hd thue
-        if validated_data['hd_thue']:
+        if 'hd_thue' in validated_data:
             try:
-                instance = HDThue.objects.get(hd_group_id=instance.id)
-                self.update_instance(instance, key='hd_thue')
+                hd_instance = HDThue.objects.select_related(
+                    'hd_group__nhan_vien__tenant',
+                    'hd_group__can_ho__chu_nha'
+                ).prefetch_related(
+                    Prefetch(
+                        'hd2dichvus_set',
+                        queryset=HD2DichVus.objects.select_related('dich_vu').all(),
+                        to_attr='list_service'
+                    )
+                ).get(hd_group_id=instance.id)
+                self.update_instance(hd_instance, key='hd_thue')
             except HDThue.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
 
         # update hd moi gioi
-        if validated_data['hd_moi_gioi']:
+        if 'hd_moi_gioi' in validated_data:
             try:
-                instance = HDMoiGioi.objects.get(hd_group_id=instance.id)
-                self.update_instance(instance, key='hd_moi_gioi')
+                mg_instance = HDMoiGioi.objects.get(hd_group_id=instance.id)
+                self.update_instance(mg_instance, key='hd_moi_gioi')
             except HDMoiGioi.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
 
         # update hd dich vu
-        if validated_data['hd_dich_vu']:
+        if 'hd_dich_vu' in validated_data:
             try:
-                instance = HDDichVu.objects.get(hd_group_id=instance.id)
-                self.update_instance(instance, key='hd_dich_vu')
+                dv_instance = HDDichVu.objects.get(hd_group_id=instance.id)
+                self.update_instance(dv_instance, key='hd_dich_vu')
             except HDDichVu.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
         return instance
@@ -170,9 +178,12 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
 
         if key == 'hd_thue':
             dich_vu = self.validated_data['hd_thue'].get('dich_vu', None)
+            hd_2_dv = None
             self.validated_data['hd_thue'].pop('dich_vu', None)
             if dich_vu or any(key in self.validated_data['hd_thue'] for key in ['start_date', 'end_date']):
-                self.update_dv(instance, dich_vu)
+                if not dich_vu:
+                    hd_2_dv = instance.list_service
+                self.update_dv(instance, dich_vu, hd_2_dv)
 
             if any(key in self.validated_data['hd_thue'] for key in
                    ['gia_thue_per_month', 'start_date', 'end_date', 'ky_tt']):
@@ -180,7 +191,12 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
                     hop_dong_id=instance.id,
                     hop_dong_type=ContentType.objects.get_for_model(instance).id
                 ).delete()
-                generate_payment_hd(hd_thue=instance, hd_moi_gioi=None, chu_nha=instance.hd_group.can_ho.chu_nha)
+                generate_payment_hd(
+                    hd_thue=instance,
+                    hd_moi_gioi=None,
+                    chu_nha=instance.hd_group.can_ho.chu_nha,
+                    tenant=instance.hd_group.nhan_vien.tenant
+                )
         return instance
 
     def delete_dv(self, hd_thue):
@@ -189,7 +205,8 @@ class HDGroupRequestSerializer(serializers.ModelSerializer):
         ServiceTransactions.objects.filter(hd_2_dichvu__in=list_instance).delete()
         list_instance.delete()
 
-    def update_dv(self, instance, dich_vu):
-        self.delete_dv(instance)
-        services = create_hd2_dv(dich_vu, instance)
-        generate_service(services, instance.start_date, instance.end_date)
+    def update_dv(self, instance, dich_vu, hd_2_dv):
+        if not hd_2_dv:
+            self.delete_dv(instance)
+            hd_2_dv = create_hd2_dv(dich_vu, instance)
+        generate_service(hd_2_dv, instance.start_date, instance.end_date)
