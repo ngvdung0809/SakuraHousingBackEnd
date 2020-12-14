@@ -5,7 +5,7 @@ from apps.authentication.versions.v1.views import auth_view
 
 router_auth = DefaultRouter()
 router_auth.register(r'v1/register', auth_view.UserCreateView.UserCreateViewSet)
-router_auth.register(r'v1/', auth_view.ChangePassWordView.ChangePassWordViewSet)
+router_auth.register(r'v1', auth_view.ChangePassWordView.ChangePassWordViewSet)
 
 auth_urlpatterns = [
     url(r'v1/login/$', auth_view.AuthenticationView.AuthenticationViewSet.as_view()),

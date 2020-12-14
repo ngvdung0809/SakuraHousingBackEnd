@@ -1,7 +1,7 @@
 from django.db import models
 
 # Create your models here.
-from apps.authentication.models import Accounts, Tenants
+from apps.authentication.models import Accounts
 from apps.common.models import CanHos, KhachThues
 from apps.utils.constants import ContractType
 
@@ -15,6 +15,7 @@ CHOICE_CONTRACT_TYPE = (
 class HDGroups(models.Model):
     name = models.CharField(max_length=255)
     can_ho = models.ForeignKey(CanHos, on_delete=models.CASCADE)
+    nhan_vien = models.ForeignKey(Accounts, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(Accounts, on_delete=models.CASCADE, related_name='hd_group_created_by')
@@ -30,7 +31,6 @@ class HDGroups(models.Model):
 class HDThue(models.Model):
     hd_group = models.ForeignKey(HDGroups, on_delete=models.CASCADE)
     khach_thue = models.ForeignKey(KhachThues, on_delete=models.CASCADE)
-    nhan_vien = models.ForeignKey(Accounts, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
     dk_gia_han = models.CharField(max_length=512, null=True, blank=True)
@@ -57,8 +57,6 @@ class HDThue(models.Model):
 
 class HDMoiGioi(models.Model):
     hd_group = models.ForeignKey(HDGroups, on_delete=models.CASCADE)
-    tenant = models.ForeignKey(Tenants, on_delete=models.CASCADE)
-    nhan_vien = models.ForeignKey(Accounts, on_delete=models.CASCADE)
     tien_moi_gioi = models.IntegerField()
     note = models.CharField(max_length=512, null=True, blank=True)
     type_contract = models.IntegerField(choices=CHOICE_CONTRACT_TYPE, default=ContractType.HDMoiGioi.value)
@@ -72,8 +70,6 @@ class HDMoiGioi(models.Model):
 
 class HDDichVu(models.Model):
     hd_group = models.ForeignKey(HDGroups, on_delete=models.CASCADE)
-    tenant = models.ForeignKey(Tenants, on_delete=models.CASCADE)
-    nhan_vien = models.ForeignKey(Accounts, on_delete=models.CASCADE)
     tien_thuc_linh = models.IntegerField()
     tien_dich_vu = models.IntegerField()
     thoi_gian_thanh_toan = models.CharField(max_length=255, null=True, blank=True)
