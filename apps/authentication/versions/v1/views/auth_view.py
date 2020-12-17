@@ -111,6 +111,7 @@ class TenantView:
 
     @method_decorator(name='update', decorator=swagger_auto_schema(auto_schema=None))
     @method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
+    @method_decorator(name='retrieve', decorator=swagger_auto_schema(auto_schema=None))
     @method_decorator(name='list_tenant', decorator=swagger_auto_schema(
         manual_parameters=[search_field]
     ))
@@ -122,7 +123,8 @@ class TenantView:
             'create_request': TenantRequestSerializer,
             'list_tenant_response': TenantResponseSerializer,
             'partial_update_response': TenantResponseSerializer,
-            'detail_tenant_response': TenantResponseSerializer
+            'detail_tenant_response': TenantResponseSerializer,
+            'delete_multi_request': MultiDeleteRequestSerializer
         }
         permission_classes = [IsAdminRole]
 
@@ -171,6 +173,13 @@ class TenantView:
             except Tenants.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
             return super().retrieve(request, custom_object=obj, *args, **kwargs)
+
+        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete-tenant')
+        def delete_multi(self, request, *args, **kwargs):
+            serializer = self.get_request_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            Tenants.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
+            return super().custom_response({})
 
 
 class AccountView:
