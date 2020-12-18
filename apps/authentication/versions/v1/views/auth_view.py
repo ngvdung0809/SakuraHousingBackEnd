@@ -178,7 +178,11 @@ class TenantView:
         def delete_multi(self, request, *args, **kwargs):
             serializer = self.get_request_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            Tenants.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
+            obj = Tenants.objects.filter(pk__in=serializer.validated_data['list_id'])
+            count = Accounts.objects.filter(tenant__in=obj).count()
+            if count > 0:
+                raise CustomException(ErrorCode.cant_delete_account)
+            obj.delete()
             return super().custom_response({})
 
 

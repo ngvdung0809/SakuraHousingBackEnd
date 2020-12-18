@@ -44,3 +44,7 @@ class ErrorCode:
         Error.code: 13,
         Error.message: 'Tai khoan bi khoa vui long lien he admin de biet them thong tin'
     }
+    cant_delete_account = {
+        Error.code: 14,
+        Error.message: 'Khong the xoa tenant vi co tai khoan cua cong ty nay'
+    }
