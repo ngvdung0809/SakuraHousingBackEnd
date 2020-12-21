@@ -170,8 +170,7 @@ class PaymentServiceView:
                 query = query.filter(ngay_thanh_toan_du_kien__lte=end)
             query = self.filter_queryset(query)
             results = ServiceTransactionResponseSerializer(query, many=True).data
-            res = self.filter_service(results)
-            return super().custom_response(res)
+            return super().custom_response(results)
         
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'],
                 url_path='list-unpaid-service-payment')
@@ -182,8 +181,7 @@ class PaymentServiceView:
                                                          ngay_thanh_toan_du_kien__lt=timezone.now()).all()
             query = self.filter_queryset(query)
             results = ServiceTransactionResponseSerializer(query, many=True).data
-            res = self.filter_service(results)
-            return super().custom_response(res)
+            return super().custom_response(results)
         
         @action(detail=False, permission_classes=[IsAdminRole], methods=['post'], url_path='service-payment')
         def service_payment(self, request, *args, **kwargs):
@@ -196,12 +194,3 @@ class PaymentServiceView:
                 ServiceTransactionResponseSerializer(service_payment).data).generate_response()
             response = Response(general_response, status=status.HTTP_201_CREATED)
             return response
-        
-        def filter_service(self, data):
-            results = {}
-            for i in data:
-                if i['can_ho'] in results:
-                    results[i['can_ho']].append(i)
-                else:
-                    results[i['can_ho']] = [i]
-            return results
