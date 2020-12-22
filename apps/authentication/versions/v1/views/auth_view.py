@@ -209,7 +209,7 @@ class AccountView:
         def partial_update(self, request, custom_instance=None, custom_data=None, *args, **kwargs):
             try:
                 obj = Accounts.objects.get(pk=kwargs['pk'])
-            except Tenants.DoesNotExist:
+            except Accounts.DoesNotExist:
                 raise CustomException(ErrorCode.not_found_record)
             return super().partial_update(request, custom_instance=obj, *args, **kwargs)
 
