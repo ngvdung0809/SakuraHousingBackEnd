@@ -1,7 +1,14 @@
 from rest_framework import serializers
 
 from apps.authentication.models import Accounts, Tenants
+from apps.common.models import Districts
 from apps.utils.constants import RoleType
+
+
+class DistrictResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Districts
+        fields = '__all__'
 
 
 class TenantResponseSerializer(serializers.ModelSerializer):

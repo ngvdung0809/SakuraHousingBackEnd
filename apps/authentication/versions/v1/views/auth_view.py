@@ -19,8 +19,8 @@ from apps.authentication.utils.custom_auth import JWTToken
 from apps.authentication.versions.v1.serializers.request_serializer import LoginSerializer, EmptySerializer, \
     AccountCreateSerializer, TenantRequestSerializer, AccountRequestSerializer, ChangePasswordSerializer
 from apps.authentication.versions.v1.serializers.response_serializer import UserResponseSerializer, \
-    TenantResponseSerializer
-from apps.common.models import ChuNhas, KhachThues, CanHos, ToaNhas
+    TenantResponseSerializer, DistrictResponseSerializer
+from apps.common.models import ChuNhas, KhachThues, CanHos, ToaNhas, Districts
 from apps.contract.models import HDGroups, HDThue, HDMoiGioi, HDDichVu
 from apps.utils.error_code import ErrorCode
 from apps.utils.exception import CustomException
@@ -268,6 +268,12 @@ class AccountView:
                 'hd_dich_vu': count_hd_dich_vu,
             }
             return super().custom_response(response)
+
+        @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='list-district')
+        def list_district(self, request, *args, **kwargs):
+            district = Districts.objects.all()
+            res = DistrictResponseSerializer(district, many=True).data
+            return super().custom_response(res)
 
 
 class ChangePassWordView:
