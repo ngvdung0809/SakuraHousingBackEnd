@@ -249,11 +249,11 @@ class AccountView:
 
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='overview')
         def overview(self, request, *args, **kwargs):
+            count_account = Accounts.objects.count()
             count_chu_nha = ChuNhas.objects.count()
             count_khach_thue = KhachThues.objects.count()
             count_can_ho = CanHos.objects.count()
             count_toa_nha = ToaNhas.objects.count()
-            count_hd_group = HDGroups.objects.count()
             count_hd_thue = HDThue.objects.count()
             count_hd_moi_gioi = HDMoiGioi.objects.count()
             count_hd_dich_vu = HDDichVu.objects.count()
@@ -262,10 +262,11 @@ class AccountView:
                 'khach_thue': count_khach_thue,
                 'can_ho': count_can_ho,
                 'toa_nha': count_toa_nha,
-                'hd_group': count_hd_group,
                 'hd_thue': count_hd_thue,
                 'hd_moi_gioi': count_hd_moi_gioi,
                 'hd_dich_vu': count_hd_dich_vu,
+                'chart_series1': [count_account, count_chu_nha, count_khach_thue, count_toa_nha, count_can_ho],
+                'chart_series2': [count_hd_thue, count_hd_moi_gioi, count_hd_dich_vu]
             }
             return super().custom_response(response)
 
