@@ -5,18 +5,18 @@ from apps.contract.models import DichVus
 
 
 class ToaNhaRequestSerializer(serializers.ModelSerializer):
-    address = serializers.CharField(default=None, max_length=255)
-    phuong = serializers.CharField(default=None, max_length=255)
-    city = serializers.CharField(default=None, max_length=255)
-    
+    address = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    phuong = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    city = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+
     class Meta:
         model = ToaNhas
         fields = ['name', 'address', 'phuong', 'district', 'city']
-    
+
     def create(self, validated_data):
         toa_nha = ToaNhas.objects.create(**self.validated_data)
         return toa_nha
-    
+
     def update(self, instance, validated_data):
         for i in validated_data.keys():
             setattr(instance, i, validated_data[i])
@@ -25,45 +25,48 @@ class ToaNhaRequestSerializer(serializers.ModelSerializer):
 
 
 class ChuNhaRequestSerializer(serializers.ModelSerializer):
-    cmt = serializers.CharField(default=None, max_length=255)
-    cmt_NgayCap = serializers.DateField(default=None)
-    cmt_NoiCap = serializers.CharField(default=None, max_length=255)
-    cccd = serializers.CharField(default=None, max_length=255)
-    cccd_NgayCap = serializers.DateField(default=None)
-    cccd_NoiCap = serializers.CharField(default=None, max_length=255)
-    passport_no = serializers.CharField(default=None, max_length=255)
-    passport_NgayCap = serializers.DateField(default=None)
-    passport_NgayHan = serializers.DateField(default=None)
-    birthday = serializers.DateField(default=None)
-    phone2 = serializers.CharField(default=None, max_length=255)
-    email2 = serializers.CharField(default=None, max_length=255)
-    so_TK2 = serializers.CharField(default=None, max_length=255)
-    chi_nhanh2 = serializers.CharField(default=None, max_length=255)
-    ngan_hang2 = serializers.CharField(default=None, max_length=255)
-    note = serializers.CharField(default=None, max_length=512)
-    
+    cmt = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    cmt_NgayCap = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    cmt_NoiCap = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    cccd = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    cccd_NgayCap = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    cccd_NoiCap = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    passport_no = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    passport_NgayCap = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    passport_NgayHan = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    birthday = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    phone2 = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    email2 = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    so_TK2 = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    chi_nhanh2 = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    ngan_hang2 = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    note = serializers.CharField(allow_null=True, allow_blank=True, max_length=512)
+
     class Meta:
         model = ChuNhas
         fields = ['name', 'cmt', 'cmt_NgayCap', 'cmt_NoiCap', 'cccd', 'cccd_NgayCap', 'cccd_NoiCap',
                   'passport_no', 'passport_NgayCap', 'passport_NgayHan', 'birthday',
                   'address', 'phone', 'phone2', 'email', 'email2', 'so_TK', 'chi_nhanh', 'ngan_hang', 'so_TK2',
                   'chi_nhanh2', 'ngan_hang2', 'note', ]
-    
+
     def create(self, validated_data):
         chu_nha = ChuNhas.objects.create(**self.validated_data)
         return chu_nha
-    
+
     def update(self, instance, validated_data):
         for i in validated_data.keys():
-            setattr(instance, i, validated_data[i])
+            if validated_data[i] == "":
+                setattr(instance, i, None)
+            else:
+                setattr(instance, i, validated_data[i])
         instance.save()
         return instance
 
 
 class CanHoRequestSerializer(serializers.ModelSerializer):
-    description = serializers.CharField(default=None, max_length=512)
-    note = serializers.CharField(default=None, max_length=512)
-    
+    description = serializers.CharField(allow_null=True, allow_blank=True, max_length=512)
+    note = serializers.CharField(allow_null=True, allow_blank=True, max_length=512)
+
     class Meta:
         model = CanHos
         fields = [
@@ -77,11 +80,11 @@ class CanHoRequestSerializer(serializers.ModelSerializer):
             'description',
             'note'
         ]
-    
+
     def create(self, validated_data):
         can_ho = CanHos.objects.create(**self.validated_data)
         return can_ho
-    
+
     def update(self, instance, validated_data):
         for i in validated_data.keys():
             setattr(instance, i, validated_data[i])
@@ -90,28 +93,28 @@ class CanHoRequestSerializer(serializers.ModelSerializer):
 
 
 class KhachThueRequestSerializer(serializers.ModelSerializer):
-    cmt = serializers.CharField(default=None, max_length=255)
-    cmt_NgayCap = serializers.DateField(default=None)
-    cmt_NoiCap = serializers.CharField(default=None, max_length=255)
-    cccd = serializers.CharField(default=None, max_length=255)
-    cccd_NgayCap = serializers.DateField(default=None)
-    cccd_NoiCap = serializers.CharField(default=None, max_length=255)
-    passport_no = serializers.CharField(default=None, max_length=255)
-    passport_NgayCap = serializers.DateField(default=None)
-    passport_NgayHan = serializers.DateField(default=None)
-    company_name = serializers.CharField(default=None, max_length=255)
-    company_phone = serializers.CharField(default=None, max_length=255)
-    company_fax = serializers.CharField(default=None, max_length=255)
-    company_address = serializers.CharField(default=None, max_length=255)
-    company_tax_code = serializers.CharField(default=None, max_length=255)
-    company_rep = serializers.CharField(default=None, max_length=255)
-    company_rep_role = serializers.CharField(default=None, max_length=255)
-    birthday = serializers.DateField(default=None)
-    assistant_name = serializers.CharField(default=None, max_length=255)
-    assistant_phone = serializers.CharField(default=None, max_length=255)
-    assistant_email = serializers.CharField(default=None, max_length=255)
-    note = serializers.CharField(default=None, max_length=512)
-    
+    cmt = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    cmt_NgayCap = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    cmt_NoiCap = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    cccd = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    cccd_NgayCap = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    cccd_NoiCap = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    passport_no = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    passport_NgayCap = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    passport_NgayHan = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    company_name = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    company_phone = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    company_fax = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    company_address = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    company_tax_code = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    company_rep = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    company_rep_role = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    birthday = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    assistant_name = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    assistant_phone = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    assistant_email = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    note = serializers.CharField(allow_null=True, allow_blank=True, max_length=512)
+
     class Meta:
         model = KhachThues
         fields = [
@@ -141,23 +144,26 @@ class KhachThueRequestSerializer(serializers.ModelSerializer):
             'assistant_email',
             'note'
         ]
-    
+
     def create(self, validated_data):
         khach_thue = KhachThues.objects.create(**self.validated_data)
         return khach_thue
-    
+
     def update(self, instance, validated_data):
         for i in validated_data.keys():
-            setattr(instance, i, validated_data[i])
+            if validated_data[i] == "":
+                setattr(instance, i, None)
+            else:
+                setattr(instance, i, validated_data[i])
         instance.save()
         return instance
 
 
 class DichVuRequestSerializer(serializers.ModelSerializer):
-    don_vi = serializers.CharField(max_length=10, default=None)
-    code = serializers.CharField(max_length=10, default=None)
+    don_vi = serializers.CharField(max_length=10, allow_null=True, allow_blank=True)
+    code = serializers.CharField(max_length=10, allow_null=True, allow_blank=True)
     dinh_ky = serializers.BooleanField(default=True)
-    
+
     class Meta:
         model = DichVus
         fields = [
@@ -166,11 +172,11 @@ class DichVuRequestSerializer(serializers.ModelSerializer):
             'code',
             'dinh_ky',
         ]
-    
+
     def create(self, validated_data):
         dich_vu = DichVus.objects.create(**self.validated_data)
         return dich_vu
-    
+
     def update(self, instance, validated_data):
         for i in validated_data.keys():
             setattr(instance, i, validated_data[i])
