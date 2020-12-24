@@ -48,3 +48,11 @@ class ErrorCode:
         Error.code: 14,
         Error.message: 'Khong the xoa tenant vi co tai khoan cua cong ty nay'
     }
+    wrong_password = {
+        Error.code: 15,
+        Error.message: 'sai mat khau'
+    }
+    duplicate_password = {
+        Error.code: 16,
+        Error.message: 'Password cu va moi khong duoc giong nhau'
+    }

@@ -115,7 +115,9 @@ class ChangePasswordSerializer(serializers.Serializer):
         request = self.context['request']
         user = Accounts.objects.get(id=request.user.id)
         if not user.check_password(attrs.get('old_password', None)):
-            raise serializers.ValidationError('wrong password')
+            raise CustomException(ErrorCode.wrong_password)
+        if attrs.get('new_password') == attrs.get('old_password'):
+            raise CustomException(ErrorCode.duplicate_password)
         return {'user': user, 'new_password': attrs['new_password']}
 
     def save(self, **kwargs):
