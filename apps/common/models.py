@@ -6,10 +6,10 @@ from apps.authentication.models import Accounts
 
 class Districts(models.Model):
     name = models.CharField(max_length=255)
-    
+
     class Meta:
         db_table = 'districts'
-    
+
     def __str__(self):
         return '{}-{}'.format(self.id, self.name)
 
@@ -20,10 +20,10 @@ class ToaNhas(models.Model):
     phuong = models.CharField(max_length=255, null=True, blank=True)
     district = models.ForeignKey(Districts, on_delete=models.CASCADE)
     city = models.CharField(max_length=255, null=True, blank=True)
-    
+
     class Meta:
         db_table = 'toa_nhas'
-    
+
     def __str__(self):
         return '{}-{}'.format(self.id, self.name)
 
@@ -54,10 +54,10 @@ class ChuNhas(models.Model):
     note = models.CharField(max_length=512, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         db_table = 'chu_nhas'
-    
+
     def __str__(self):
         return '{}-{}-{}'.format(self.id, self.name, self.cmt)
 
@@ -81,7 +81,7 @@ class KhachThues(models.Model):
     company_rep = models.CharField(max_length=255, null=True, blank=True)
     company_rep_role = models.CharField(max_length=255, null=True, blank=True)
     birthday = models.DateField(null=True, blank=True)
-    address = models.CharField(max_length=255)
+    address = models.CharField(max_length=255, null=True, blank=True)
     phone = models.CharField(max_length=255)
     email = models.CharField(max_length=255)
     assistant_name = models.CharField(max_length=255, null=True, blank=True)
@@ -90,10 +90,10 @@ class KhachThues(models.Model):
     note = models.CharField(max_length=512, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         db_table = 'khach_thues'
-    
+
     def __str__(self):
         return '{}-{}-{}'.format(self.id, self.name, self.cmt)
 
@@ -110,9 +110,9 @@ class CanHos(models.Model):
     note = models.CharField(max_length=512, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         db_table = 'can_hos'
-    
+
     def __str__(self):
         return '{}-{}'.format(self.id, self.name)

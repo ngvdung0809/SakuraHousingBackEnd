@@ -113,6 +113,7 @@ class KhachThueRequestSerializer(serializers.ModelSerializer):
     assistant_name = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
     assistant_phone = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
     assistant_email = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
+    address = serializers.CharField(allow_null=True, allow_blank=True, max_length=255)
     note = serializers.CharField(allow_null=True, allow_blank=True, max_length=512)
 
     class Meta:
