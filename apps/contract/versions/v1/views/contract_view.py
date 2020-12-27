@@ -89,7 +89,7 @@ class HDGroupView:
                     queryset=HDDichVu.objects.all(),
                     to_attr='hd_dich_vus'
                 )
-            ).all()
+            ).order_by('updated_at').all()
             return query
 
         def list(self, request, custom_queryset=None, custom_query_params=None, *args, **kwargs):

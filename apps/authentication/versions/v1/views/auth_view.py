@@ -205,7 +205,7 @@ class AccountView:
     ))
     class AccountViewSet(GenericViewSet):
         serializer_class = AccountRequestSerializer
-        queryset = Accounts.objects.all()
+        queryset = Accounts.objects.order_by('updated_at').all()
         action_serializers = {
             'list_account_response': UserResponseSerializer,
             'partial_update_response': UserResponseSerializer,

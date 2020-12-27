@@ -155,7 +155,7 @@ class ChuNhaView:
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='list-chu-nha')
         def list_chu_nha(self, request, *args, **kwargs):
             search = self.request.GET.get("search", None)
-            query = ChuNhas.objects.all()
+            query = ChuNhas.objects.order_by('updated_at').all()
             if search:
                 query = query.filter(
                     Q(name__icontains=search) |
@@ -237,7 +237,7 @@ class KhachThueView:
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='list-khach_thue')
         def list_khach_thue(self, request, *args, **kwargs):
             search = self.request.GET.get("search", None)
-            query = KhachThues.objects.all()
+            query = KhachThues.objects.order_by('updated_at').all()
             if search:
                 query = query.filter(
                     Q(name__icontains=search) |
@@ -319,7 +319,7 @@ class CanHoView:
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='list-can-ho')
         def list_can_ho(self, request, *args, **kwargs):
             search = self.request.GET.get("search", None)
-            query = CanHos.objects.select_related('chu_nha', 'toa_nha').all()
+            query = CanHos.objects.select_related('chu_nha', 'toa_nha').order_by('updated_at').all()
             if search:
                 query = query.filter(name__icontains=search)
             results = self.get_response_serializer(query, many=True).data
@@ -397,7 +397,7 @@ class DichVuView:
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='list-dich-vu')
         def list_dich_vu(self, request, *args, **kwargs):
             search = self.request.GET.get("search", None)
-            query = DichVus.objects.all()
+            query = DichVus.objects.order_by('updated_at').all()
             if search:
                 query = query.filter(name__icontains=search)
             results = self.get_response_serializer(query, many=True).data
