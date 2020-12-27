@@ -397,7 +397,7 @@ class DichVuView:
         @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'], url_path='list-dich-vu')
         def list_dich_vu(self, request, *args, **kwargs):
             search = self.request.GET.get("search", None)
-            query = DichVus.objects.order_by('updated_at').all()
+            query = DichVus.objects.all()
             if search:
                 query = query.filter(name__icontains=search)
             results = self.get_response_serializer(query, many=True).data
