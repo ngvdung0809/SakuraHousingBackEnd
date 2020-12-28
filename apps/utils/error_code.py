@@ -44,7 +44,7 @@ class ErrorCode:
         Error.code: 13,
         Error.message: 'Tai khoan bi khoa vui long lien he admin de biet them thong tin'
     }
-    cant_delete_account = {
+    cant_delete_tenant = {
         Error.code: 14,
         Error.message: 'Khong the xoa tenant vi co tai khoan cua cong ty nay'
     }
@@ -55,4 +55,28 @@ class ErrorCode:
     duplicate_password = {
         Error.code: 16,
         Error.message: 'Password cu va moi khong duoc giong nhau'
+    }
+    cant_delete_host = {
+        Error.code: 17,
+        Error.message: 'Khong the xoa chủ nha vi co căn hộ của chủ nhà này'
+    }
+    cant_delete_guest = {
+        Error.code: 18,
+        Error.message: 'Khong the xoa khach thue vi co hd thue lien quan'
+    }
+    cant_delete_canho = {
+        Error.code: 19,
+        Error.message: 'Khong the xoa can ho vi co hd group lien quan'
+    }
+    cant_delete_dv = {
+        Error.code: 21,
+        Error.message: 'Khong the xoa dich vu vi co hd thue lien quan'
+    }
+    cant_delete_building = {
+        Error.code: 22,
+        Error.message: 'Khong the xoa toa nha vi co can ho lien quan'
+    }
+    cant_delete_account = {
+        Error.code: 23,
+        Error.message: 'Khong the xoa toa nha vi co bo hop dong lien quan'
     }

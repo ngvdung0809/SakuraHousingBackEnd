@@ -174,14 +174,14 @@ class TenantView:
                 raise CustomException(ErrorCode.not_found_record)
             return super().retrieve(request, custom_object=obj, *args, **kwargs)
 
-        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete-tenant')
+        @action(detail=False, permission_classes=[IsAdminRole], methods=['post'], url_path='delete-tenant')
         def delete_multi(self, request, *args, **kwargs):
             serializer = self.get_request_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             obj = Tenants.objects.filter(pk__in=serializer.validated_data['list_id'])
             count = Accounts.objects.filter(tenant__in=obj).count()
             if count > 0:
-                raise CustomException(ErrorCode.cant_delete_account)
+                raise CustomException(ErrorCode.cant_delete_tenant)
             obj.delete()
             return super().custom_response({})
 
@@ -239,11 +239,18 @@ class AccountView:
                 )
             return super().list(request, *args, **kwargs)
 
-        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete_account')
+        @action(detail=False, permission_classes=[IsAdminRole], methods=['post'], url_path='delete_account')
         def delete_multi(self, request, *args, **kwargs):
             serializer = self.get_request_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            Accounts.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
+            obj = Accounts.objects.filter(pk__in=serializer.validated_data['list_id'])
+            if HDGroups.objects.filter(
+                    Q(nhan_vien__in=obj) |
+                    Q(created_by__in=obj) |
+                    Q(updated_by__in=obj)
+            ).count() > 0:
+                raise CustomException(ErrorCode.cant_delete_account)
+            obj.delete()
 
             return super().custom_response({})
 

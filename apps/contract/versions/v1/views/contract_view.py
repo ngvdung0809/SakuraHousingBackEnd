@@ -135,7 +135,7 @@ class HDGroupView:
                 raise CustomException(ErrorCode.not_found_record)
             return super().retrieve(request, custom_object=obj, *args, **kwargs)
 
-        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete_hdgroup')
+        @action(detail=False, permission_classes=[IsAdminRole], methods=['post'], url_path='delete_hdgroup')
         def delete_multi(self, request, *args, **kwargs):
             serializer = self.get_request_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)

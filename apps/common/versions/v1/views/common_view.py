@@ -13,7 +13,7 @@ from apps.common.versions.v1.serializers.request_serializer import ToaNhaRequest
     KhachThueRequestSerializer, CanHoRequestSerializer, DichVuRequestSerializer
 from apps.common.versions.v1.serializers.response_serializer import ToaNhaResponseSerializer, \
     ChuNhaResponseSerializer, KhachThueResponseSerializer, CanHoResponseSerializer, DichVuResponseSerializer
-from apps.contract.models import DichVus, HDGroups, HDThue, HDMoiGioi, HDDichVu
+from apps.contract.models import DichVus, HDGroups, HDThue, HDMoiGioi, HDDichVu, HD2DichVus
 from apps.utils.error_code import ErrorCode
 from apps.utils.exception import CustomException
 from apps.utils.multi_delete import MultiDeleteRequestSerializer
@@ -91,11 +91,14 @@ class ToaNhaView:
                 raise CustomException(ErrorCode.not_found_record)
             return super().retrieve(request, custom_object=obj, *args, **kwargs)
 
-        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete_toanha')
+        @action(detail=False, permission_classes=[IsAdminRole], methods=['post'], url_path='delete_toanha')
         def delete_multi(self, request, *args, **kwargs):
             serializer = self.get_request_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            ToaNhas.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
+            obj = ToaNhas.objects.filter(pk__in=serializer.validated_data['list_id'])
+            if CanHos.objects.filter(toa_nha__in=obj).count() > 0:
+                raise CustomException(ErrorCode.cant_delete_building)
+            obj.delete()
             return super().custom_response({})
 
 
@@ -173,11 +176,14 @@ class ChuNhaView:
                 raise CustomException(ErrorCode.not_found_record)
             return super().retrieve(request, custom_object=obj, *args, **kwargs)
 
-        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete_chunha')
+        @action(detail=False, permission_classes=[IsAdminRole], methods=['post'], url_path='delete_chunha')
         def delete_multi(self, request, *args, **kwargs):
             serializer = self.get_request_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            ChuNhas.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
+            obj = ChuNhas.objects.filter(pk__in=serializer.validated_data['list_id'])
+            if CanHos.objects.filter(chu_nha__in=obj).count() > 0:
+                raise CustomException(ErrorCode.cant_delete_host)
+            obj.delete()
             return super().custom_response({})
 
 
@@ -255,11 +261,14 @@ class KhachThueView:
                 raise CustomException(ErrorCode.not_found_record)
             return super().retrieve(request, custom_object=obj, *args, **kwargs)
 
-        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete_khachthue')
+        @action(detail=False, permission_classes=[IsAdminRole], methods=['post'], url_path='delete_khachthue')
         def delete_multi(self, request, *args, **kwargs):
             serializer = self.get_request_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            KhachThues.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
+            obj = KhachThues.objects.filter(pk__in=serializer.validated_data['list_id'])
+            if HDThue.objects.filter(khach_thue__in=obj).count() > 0:
+                raise CustomException(ErrorCode.cant_delete_guest)
+            obj.delete()
             return super().custom_response({})
 
 
@@ -333,11 +342,14 @@ class CanHoView:
                 raise CustomException(ErrorCode.not_found_record)
             return super().retrieve(request, custom_object=obj, *args, **kwargs)
 
-        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete_canho')
+        @action(detail=False, permission_classes=[IsAdminRole], methods=['post'], url_path='delete_canho')
         def delete_multi(self, request, *args, **kwargs):
             serializer = self.get_request_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            CanHos.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
+            obj = CanHos.objects.filter(pk__in=serializer.validated_data['list_id'])
+            if HDGroups.objects.filter(can_ho__in=obj).count() > 0:
+                raise CustomException(ErrorCode.cant_delete_canho)
+            obj.delete()
             return super().custom_response({})
 
 
@@ -411,9 +423,12 @@ class DichVuView:
                 raise CustomException(ErrorCode.not_found_record)
             return super().retrieve(request, custom_object=obj, *args, **kwargs)
 
-        @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'], url_path='delete_dichvu')
+        @action(detail=False, permission_classes=[IsAdminRole], methods=['post'], url_path='delete_dichvu')
         def delete_multi(self, request, *args, **kwargs):
             serializer = self.get_request_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            DichVus.objects.filter(pk__in=serializer.validated_data['list_id']).delete()
+            obj = DichVus.objects.filter(pk__in=serializer.validated_data['list_id'])
+            if HD2DichVus.objects.filter(dich_vu__in=obj).count() > 0:
+                raise CustomException(ErrorCode.cant_delete_dv)
+            obj.delete()
             return super().custom_response({})
